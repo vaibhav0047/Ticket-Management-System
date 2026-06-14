@@ -5,6 +5,11 @@ const jwt = require("jsonwebtoken");
 /**
  * REGISTER USER
  */
+
+
+console.log("User:", User);
+console.log("findOne:", User.findOne);
+console.log("keys:", Object.keys(User));
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -28,13 +33,16 @@ exports.register = async (req, res) => {
         // hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // create user
+        const userCount = await User.countDocuments();
+
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
-            role: role || "user"
+            role: userCount === 0 ? "admin" : "employee",
+            department: "Engineering"
         });
+        console.log("User count:", userCount);
 
         // return safe response (DO NOT send password)
         res.status(201).json({

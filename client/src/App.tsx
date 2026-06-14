@@ -6,6 +6,7 @@ import TicketDetails from "./pages/TicketDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -36,7 +37,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/ticket/:id"
           element={

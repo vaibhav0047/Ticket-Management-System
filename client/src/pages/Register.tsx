@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { FaApple } from "react-icons/fa";
-import { GoogleLogin } from "@react-oauth/google";
+
 
 export default function Register() {
   const navigate = useNavigate();

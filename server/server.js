@@ -18,6 +18,9 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes (models will be loaded when required by controllers)
 const authRoutes = require("./routes/authRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const userRoutes = require("./routes/userRoutes");
+
+app.use("/api/users", userRoutes);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/analytics", analyticsRoutes);

@@ -6,8 +6,44 @@ import {
     FaChartBar,
     FaCog
 } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar() {
+    const location = useLocation();
+
+    const navItems = [
+        {
+            name: "Dashboard",
+            icon: <FaHome />,
+            path: "/dashboard"
+        },
+        {
+            name: "Tickets",
+            icon: <FaTicketAlt />,
+            path: "/tickets"
+        },
+        {
+            name: "Create Ticket",
+            icon: <FaPlusCircle />,
+            path: "/create-ticket"
+        },
+        {
+            name: "Users",
+            icon: <FaUsers />,
+            path: "/users"
+        },
+        {
+            name: "Reports",
+            icon: <FaChartBar />,
+            path: "/reports"
+        },
+        {
+            name: "Settings",
+            icon: <FaCog />,
+            path: "/settings"
+        }
+    ];
+
     return (
         <div className="w-64 h-screen bg-slate-950 text-white fixed">
             <div className="p-6 text-2xl font-bold border-b border-slate-800">
@@ -15,35 +51,19 @@ export default function Navbar() {
             </div>
 
             <div className="p-4 flex flex-col gap-3">
-                <button className="bg-blue-600 p-3 rounded-lg text-left flex items-center gap-3">
-                    <FaHome />
-                    Dashboard
-                </button>
-
-                <button className="hover:bg-slate-800 p-3 rounded-lg flex items-center gap-3">
-                    <FaTicketAlt />
-                    Tickets
-                </button>
-
-                <button className="hover:bg-slate-800 p-3 rounded-lg flex items-center gap-3">
-                    <FaPlusCircle />
-                    Create Ticket
-                </button>
-
-                <button className="hover:bg-slate-800 p-3 rounded-lg flex items-center gap-3">
-                    <FaUsers />
-                    Users
-                </button>
-
-                <button className="hover:bg-slate-800 p-3 rounded-lg flex items-center gap-3">
-                    <FaChartBar />
-                    Reports
-                </button>
-
-                <button className="hover:bg-slate-800 p-3 rounded-lg flex items-center gap-3">
-                    <FaCog />
-                    Settings
-                </button>
+                {navItems.map((item) => (
+                    <Link
+                        key={item.name}
+                        to={item.path}
+                        className={`p-3 rounded-lg flex items-center gap-3 transition ${location.pathname === item.path
+                                ? "bg-blue-600"
+                                : "hover:bg-slate-800"
+                            }`}
+                    >
+                        {item.icon}
+                        {item.name}
+                    </Link>
+                ))}
             </div>
 
             <div className="absolute bottom-6 left-4 right-4">
