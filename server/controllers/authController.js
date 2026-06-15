@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const PendingUser = require("../models/PendingUser");
+const otpGenerator = require("otp-generator");
+const sendEmail = require("../utils/sendEmail");
 
 /**
  * REGISTER USER
@@ -30,30 +33,41 @@ exports.register = async (req, res) => {
             });
         }
 
-        // hash password
+        await PendingUser.deleteOne({ email });
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const userCount = await User.countDocuments();
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+            digits: true
+        });
 
-        const user = await User.create({
+        await PendingUser.create({
             name,
             email,
             password: hashedPassword,
-            role: userCount === 0 ? "admin" : "employee",
-            department: "Engineering"
+            otp,
+            otpExpiry: Date.now() + 5 * 60 * 1000
         });
-        console.log("User count:", userCount);
 
-        // return safe response (DO NOT send password)
-        res.status(201).json({
-            message: "User created successfully",
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+        await sendEmail(
+            email,
+            "Email Verification OTP",
+            `
+            <h2>Ticket Management System</h2>
+            <p>Your OTP is:</p>
+            <h1>${otp}</h1>
+            <p>Expires in 5 minutes.</p>
+            `
+        );
+
+        return res.status(200).json({
+            message: "OTP sent successfully"
         });
+
+
 
     } catch (err) {
         console.error("REGISTER ERROR:", err);
@@ -64,7 +78,66 @@ exports.register = async (req, res) => {
         });
     }
 };
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
 
+        if (!email || !otp) {
+            return res.status(400).json({
+                message: "Email and OTP are required"
+            });
+        }
+
+        const pendingUser = await PendingUser.findOne({ email });
+
+        if (!pendingUser) {
+            return res.status(404).json({
+                message: "Pending registration not found"
+            });
+        }
+
+        if (pendingUser.otp !== otp) {
+            return res.status(400).json({
+                message: "Invalid OTP"
+            });
+        }
+
+        if (new Date() > pendingUser.otpExpiry) {
+            return res.status(400).json({
+                message: "OTP expired"
+            });
+        }
+
+        const userCount = await User.countDocuments();
+
+        const user = await User.create({
+            name: pendingUser.name,
+            email: pendingUser.email,
+            password: pendingUser.password,
+            role: userCount === 0 ? "admin" : "user",
+            department: "Engineering"
+        });
+
+        await PendingUser.deleteOne({ email });
+
+        return res.status(201).json({
+            message: "Account created successfully",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (err) {
+        console.error("VERIFY OTP ERROR:", err);
+
+        return res.status(500).json({
+            message: err.message
+        });
+    }
+};
 
 /**
  * LOGIN USER
