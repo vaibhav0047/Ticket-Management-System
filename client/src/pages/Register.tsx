@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { FaApple } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
+
 
 
 export default function Register() {
@@ -69,8 +71,13 @@ export default function Register() {
         }
       );
 
-      alert("Account created successfully!");
-      navigate("/login");
+      alert("OTP sent to your email");
+
+      navigate("/verify-otp", {
+        state: {
+          email: formData.email,
+        },
+      });
     } catch (err: any) {
       alert(
         err.response?.data?.message ||
@@ -95,7 +102,7 @@ export default function Register() {
         {/* Social Login */}
         <div className="space-y-3 mb-5">
           {/* Google OAuth temporarily disabled due to configuration issues */}
-          {/* 
+
           <div className="mb-3 flex justify-center">
             <GoogleLogin
               onSuccess={(credentialResponse) => {
@@ -109,7 +116,7 @@ export default function Register() {
               }}
             />
           </div>
-          */}
+
 
           <button
             type="button"

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         email: "",
@@ -72,20 +74,39 @@ export default function Login() {
                     value={formData.email}
                     onChange={handleChange}
                     autoComplete="email"
-                    className="w-full border p-3 rounded mb-4"
+                    className="w-full border p-3 rounded mb-4  "
                     required
                 />
+                <div className="relative mb-4">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        autoComplete="current-password"
+                        className="w-full border p-3 rounded pr-10"
+                        required
+                    />
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    autoComplete="current-password"
-                    className="w-full border p-3 rounded mb-4"
-                    required
-                />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                </div>
+
+
+                <div className="text-right mb-4">
+                    <Link
+                        to="/forgot-password"
+                        className="text-sm text-blue-600 hover:underline"
+                    >
+                        Forgot Password?
+                    </Link>
+                </div>
 
                 <button
                     type="submit"

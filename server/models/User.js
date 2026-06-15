@@ -34,6 +34,15 @@ const userSchema = new mongoose.Schema({
             "IT Support"
         ],
         default: "Engineering"
+    },
+
+    // Password reset fields
+    resetOtp: {
+        type: String
+    },
+
+    resetOtpExpiry: {
+        type: Date
     }
 }, { timestamps: true });
 

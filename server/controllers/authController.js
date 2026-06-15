@@ -5,26 +5,20 @@ const PendingUser = require("../models/PendingUser");
 const otpGenerator = require("otp-generator");
 const sendEmail = require("../utils/sendEmail");
 
+
 /**
- * REGISTER USER
+ * REGISTER USER (SEND OTP)
  */
-
-
-console.log("User:", User);
-console.log("findOne:", User.findOne);
-console.log("keys:", Object.keys(User));
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
-        // basic validation (prevents crashes)
         if (!name || !email || !password) {
             return res.status(400).json({
                 message: "Name, email and password are required"
             });
         }
 
-        // check existing user
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -33,7 +27,8 @@ exports.register = async (req, res) => {
             });
         }
 
-        await PendingUser.deleteOne({ email });
+        // remove old pending requests
+        await PendingUser.deleteMany({ email });
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -67,17 +62,19 @@ exports.register = async (req, res) => {
             message: "OTP sent successfully"
         });
 
-
-
     } catch (err) {
         console.error("REGISTER ERROR:", err);
-
         res.status(500).json({
             message: "Server error during registration",
             error: err.message
         });
     }
 };
+
+
+/**
+ * VERIFY OTP (CREATE USER)
+ */
 exports.verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -92,7 +89,7 @@ exports.verifyOtp = async (req, res) => {
 
         if (!pendingUser) {
             return res.status(404).json({
-                message: "Pending registration not found"
+                message: "No pending registration found"
             });
         }
 
@@ -102,7 +99,7 @@ exports.verifyOtp = async (req, res) => {
             });
         }
 
-        if (new Date() > pendingUser.otpExpiry) {
+        if (Date.now() > pendingUser.otpExpiry) {
             return res.status(400).json({
                 message: "OTP expired"
             });
@@ -118,7 +115,7 @@ exports.verifyOtp = async (req, res) => {
             department: "Engineering"
         });
 
-        await PendingUser.deleteOne({ email });
+        await PendingUser.deleteMany({ email });
 
         return res.status(201).json({
             message: "Account created successfully",
@@ -132,12 +129,12 @@ exports.verifyOtp = async (req, res) => {
 
     } catch (err) {
         console.error("VERIFY OTP ERROR:", err);
-
-        return res.status(500).json({
+        res.status(500).json({
             message: err.message
         });
     }
 };
+
 
 /**
  * LOGIN USER
@@ -146,14 +143,12 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // validation
         if (!email || !password) {
             return res.status(400).json({
                 message: "Email and password are required"
             });
         }
 
-        // find user
         const user = await User.findOne({ email });
 
         if (!user) {
@@ -162,7 +157,6 @@ exports.login = async (req, res) => {
             });
         }
 
-        // compare password
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -171,23 +165,13 @@ exports.login = async (req, res) => {
             });
         }
 
-        // check JWT secret
-        if (!process.env.JWT_SECRET) {
-            throw new Error("JWT_SECRET is not defined in environment variables");
-        }
-
-        // generate token
         const token = jwt.sign(
-            {
-                id: user._id,
-                role: user.role
-            },
+            { id: user._id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
 
-        // response
-        res.status(200).json({
+        return res.status(200).json({
             message: "Login successful",
             token,
             user: {
@@ -200,10 +184,163 @@ exports.login = async (req, res) => {
 
     } catch (err) {
         console.error("LOGIN ERROR:", err);
-
         res.status(500).json({
             message: "Server error during login",
             error: err.message
+        });
+    }
+};
+
+
+/**
+ * FORGOT PASSWORD (SEND OTP)
+ */
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+            digits: true
+        });
+
+        user.resetOtp = otp;
+        user.resetOtpExpiry = Date.now() + 10 * 60 * 1000;
+        await user.save();
+
+        await sendEmail(
+            email,
+            "Password Reset OTP",
+            `
+            <h2>Password Reset</h2>
+            <h1>${otp}</h1>
+            <p>Valid for 10 minutes</p>
+            `
+        );
+
+        return res.json({
+            message: "OTP sent for password reset"
+        });
+
+    } catch (err) {
+        console.error("FORGOT PASSWORD ERROR:", err);
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+exports.verifyResetOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({
+                message: "Email and OTP are required"
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        if (!user.resetOtp || !user.resetOtpExpiry) {
+            return res.status(400).json({
+                message: "No reset request found"
+            });
+        }
+
+        if (user.resetOtp !== otp) {
+            return res.status(400).json({
+                message: "Invalid OTP"
+            });
+        }
+
+        if (Date.now() > user.resetOtpExpiry) {
+            return res.status(400).json({
+                message: "OTP expired"
+            });
+        }
+
+        return res.status(200).json({
+            message: "OTP verified successfully"
+        });
+
+    } catch (err) {
+        console.error("VERIFY RESET OTP ERROR:", err);
+        return res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+/**
+ * RESET PASSWORD
+ */
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({
+                message: "All fields are required"
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        if (user.resetOtp !== otp) {
+            return res.status(400).json({
+                message: "Invalid OTP"
+            });
+        }
+
+        if (Date.now() > user.resetOtpExpiry) {
+            return res.status(400).json({
+                message: "OTP expired"
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+
+        user.resetOtp = undefined;
+        user.resetOtpExpiry = undefined;
+
+        await user.save();
+
+        return res.json({
+            message: "Password reset successful"
+        });
+
+    } catch (err) {
+        console.error("RESET PASSWORD ERROR:", err);
+        res.status(500).json({
+            message: err.message
         });
     }
 };

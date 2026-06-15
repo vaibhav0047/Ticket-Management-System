@@ -7,6 +7,10 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Users from "./pages/Users";
+import VerifyOtp from "./pages/VerifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyResetOtp from "./pages/VerifyResetOtp";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -52,6 +56,25 @@ function App() {
               <TicketDetails />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/verify-otp"
+          element={<VerifyOtp />}
+        />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        <Route
+          path="/verify-reset-otp"
+          element={<VerifyResetOtp />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
         />
       </Routes>
     </BrowserRouter>
