@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { FaBell } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import OrgSwitcher from "./OrgSwitcher";
+import { useOrg } from "../context/OrgContext";
 
 export default function Topbar() {
     const navigate = useNavigate();
     const [showMenu, setShowMenu] = useState(false);
 
+    const { orgs } = useOrg();
     const user = JSON.parse(localStorage.getItem("user"));
 
     const handleLogout = () => {
@@ -21,6 +24,26 @@ export default function Topbar() {
                 placeholder="Search tickets..."
                 className="w-96 border border-gray-200 rounded-lg px-4 py-2"
             />
+            <div className="flex items-center gap-3">
+
+                <OrgSwitcher />
+
+                <button
+                    onClick={() =>
+                        navigate(
+                            orgs.length === 0
+                                ? "/organization/create"
+                                : "/organization/view"
+                        )
+                    }
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                    {orgs.length === 0
+                        ? "Create Organization"
+                        : "View Organization"}
+                </button>
+
+            </div>
 
             <div className="flex items-center gap-5">
                 <FaBell className="text-gray-500 text-lg cursor-pointer" />

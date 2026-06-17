@@ -1,33 +1,99 @@
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-const data = [
-    { name: "Resolved", value: 142 },
-    { name: "Open", value: 51 },
-    { name: "In Progress", value: 63 },
+import {
+    PieChart,
+    Pie,
+    Cell,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
+
+
+type Props = {
+    orgId?: string;
+};
+
+
+const COLORS = [
+    "#22c55e",
+    "#ef4444",
+    "#f59e0b",
 ];
 
-const COLORS = ["#22c55e", "#ef4444", "#f59e0b"];
 
-export default function TicketStatusChart() {
+export default function TicketStatusChart({ orgId }: Props) {
+
+    const [data, setData] = useState<any[]>([]);
+
+
+    useEffect(() => {
+
+        if (!orgId) return;
+
+
+        const fetchStatus = async () => {
+
+            try {
+
+                const res = await axios.get(
+                    `/api/tickets/status?orgId=${orgId}`
+                );
+
+                setData(res.data);
+
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to fetch ticket status:",
+                    error
+                );
+
+            }
+
+        };
+
+
+        fetchStatus();
+
+
+    }, [orgId]);
+
+
+
     return (
-        <PieChart width={300} height={300}>
-            <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                outerRadius={90}
-                dataKey="value"
-                label
-            >
-                {data.map((_, index) => (
-                    <Cell
-                        key={index}
-                        fill={COLORS[index]}
-                    />
-                ))}
-            </Pie>
 
-            <Tooltip />
-        </PieChart>
+        <ResponsiveContainer width="100%" height={300}>
+
+            <PieChart>
+
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    dataKey="value"
+                    label
+                >
+
+                    {data.map((_, index) => (
+
+                        <Cell
+                            key={index}
+                            fill={COLORS[index % COLORS.length]}
+                        />
+
+                    ))}
+
+                </Pie>
+
+
+                <Tooltip />
+
+            </PieChart>
+
+        </ResponsiveContainer>
+
     );
 }
