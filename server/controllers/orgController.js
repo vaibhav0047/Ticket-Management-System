@@ -3,8 +3,10 @@ const Membership = require("../models/Membership");
 const Department = require("../models/Department");
 const Invitation = require("../models/Invitation");
 
+
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+
 
 const createOrganization = async (req, res) => {
     try {
@@ -33,6 +35,7 @@ const createOrganization = async (req, res) => {
             userId: req.user.id,
             orgId: org._id,
             role: "admin",
+            departmentId: null,
         });
 
         // Store created departments
@@ -173,8 +176,228 @@ const getMyOrganizations = async (req, res) => {
         });
     }
 };
+const getOrganization = async (req, res) => {
+    try {
+        const organization = await Organization.findById(req.params.id);
 
+        if (!organization) {
+            return res.status(404).json({
+                message: "Organization not found"
+            });
+        }
+
+        res.json(organization);
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+const getOrganizationMembers = async (req, res) => {
+    try {
+
+        const members = await Membership.find({
+            orgId: req.params.id
+        })
+            .populate({
+                path: "userId",
+                select: "name email"
+            })
+            .populate({
+                path: "departmentId",
+                select: "name"
+            });
+
+
+        const formattedMembers = members.map((member) => ({
+            _id: member._id,
+
+            user: member.userId,
+
+            department: member.departmentId,
+
+            role: member.role
+        }));
+
+
+        res.json({
+            members: formattedMembers
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+const deleteOrganization = async (req, res) => {
+    try {
+
+        const org = await Organization.findById(req.params.id);
+
+        if (!org) {
+            return res.status(404).json({
+                message: "Organization not found"
+            });
+        }
+
+
+        await Organization.findByIdAndDelete(req.params.id);
+
+
+        res.status(200).json({
+            message: "Organization deleted successfully"
+        });
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+};
+const createInvite = async (req, res) => {
+
+    try {
+
+        const organization = await Organization.findById(
+            req.params.id
+        );
+
+
+        if (!organization) {
+            return res.status(404).json({
+                message: "Organization not found"
+            });
+        }
+
+
+        // generate unique secure token
+        const token = crypto
+            .randomBytes(32)
+            .toString("hex");
+
+
+
+        organization.inviteToken = token;
+
+
+        // expire after 7 days
+        organization.inviteExpires =
+            Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+
+
+        await organization.save();
+
+
+
+        const link =
+            `${process.env.FRONTEND_URL}/invite/${token}`;
+
+
+
+        res.status(200).json({
+            link
+        });
+
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+
+};
+const joinOrganization = async (req, res) => {
+
+    try {
+
+        const organization =
+            await Organization.findOne({
+                inviteToken: req.params.token,
+                inviteExpires: {
+                    $gt: Date.now()
+                }
+            });
+
+
+        if (!organization) {
+            return res.status(400).json({
+                message: "Invalid or expired invite link"
+            });
+        }
+
+
+
+        const alreadyMember =
+            organization.members.some(
+                member =>
+                    member.user.toString() === req.user._id.toString()
+            );
+
+
+        if (alreadyMember) {
+
+            return res.status(400).json({
+                message: "Already a member"
+            });
+
+        }
+
+
+
+        organization.members.push({
+
+            user: req.user._id,
+
+            role: "member"
+
+        });
+
+
+
+        await organization.save();
+
+
+
+        res.json({
+
+            message: "Joined organization successfully",
+
+            organizationId: organization._id
+
+        });
+
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        })
+
+    }
+
+}
 module.exports = {
     createOrganization,
     getMyOrganizations,
+    getOrganization,
+    getOrganizationMembers,
+    deleteOrganization,
+    createInvite,
+    joinOrganization
 };

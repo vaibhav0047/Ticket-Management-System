@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 import {
     PieChart,
@@ -36,11 +36,11 @@ export default function TicketStatusChart({ orgId }: Props) {
 
             try {
 
-                const res = await axios.get(
-                    `/api/tickets/status?orgId=${orgId}`
+                const res = await api.get(
+                    `/tickets/status?orgId=${orgId}`
                 );
 
-                setData(res.data);
+                setData(res.data.data || []);
 
 
             } catch (error) {

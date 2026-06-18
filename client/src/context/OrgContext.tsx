@@ -41,38 +41,36 @@ export function OrgProvider({
 
                 const token = localStorage.getItem("token");
 
+
                 const res = await axios.get(
                     "/api/orgs/my",
                     {
                         headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+                            Authorization: `Bearer ${token}`
+                        }
                     }
                 );
 
 
-                const organizations =
-                    res.data.organizations ||
-                    res.data.orgs ||
-                    res.data;
+                const organizations = res.data;
 
 
                 setOrgs(organizations);
 
 
                 if (organizations.length > 0) {
+
                     setActiveOrg(organizations[0]);
-                }
 
-
-                if (res.data.length > 0) {
-                    setActiveOrg(res.data[0]);
                 }
 
 
             } catch (err) {
 
-                console.error("Org fetch failed:", err);
+                console.error(
+                    "Org fetch failed:",
+                    err
+                );
 
             } finally {
 

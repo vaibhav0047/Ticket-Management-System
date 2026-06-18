@@ -1,31 +1,52 @@
 const mongoose = require("mongoose");
 
-const organizationSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: true,
-        },
 
-        description: String,
+const OrganizationSchema = new mongoose.Schema({
 
-        industry: String,
+    name: String,
 
-        companySize: String,
+    description: String,
 
-        website: String,
+    industry: String,
 
-        createdBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
+    companySize: String,
+
+    website: String,
+
+
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     },
-    {
-        timestamps: true,
-    }
-);
 
-module.exports = mongoose.model(
-    "Organization",
-    organizationSchema
-);
+
+    members: [
+        {
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
+            },
+
+            role: {
+                type: String,
+                default: "member"
+            }
+        }
+    ],
+
+
+    inviteToken: String,
+
+    inviteExpires: Date
+
+
+}, {
+    timestamps: true
+});
+
+
+module.exports =
+    mongoose.model(
+        "Organization",
+        OrganizationSchema
+    );

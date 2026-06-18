@@ -1,84 +1,136 @@
-const Invitation = require("../models/Invitation");
+const Organization = require("../models/Organization");
 const Membership = require("../models/Membership");
 
-const getInvitation = async (req, res) => {
+
+exports.getInvitation = async (req, res) => {
+
     try {
-        const invitation = await Invitation
-            .findOne({
-                token: req.params.token,
-                status: "pending",
+
+        const org =
+            await Organization.findOne({
+                inviteToken: req.params.token
             })
-            .populate("orgId");
+                .populate("createdBy", "name email");
 
-        if (!invitation) {
+
+        if (!org) {
+
             return res.status(404).json({
-                message: "Invalid invitation",
+                message: "Invalid invitation"
             });
+
         }
 
-        res.json(invitation);
-
-    } catch (error) {
-        res.status(500).json({
-            message: error.message,
-        });
-    }
-};
-
-const acceptInvitation = async (req, res) => {
-    try {
-
-        const invitation = await Invitation.findOne({
-            token: req.params.token,
-            status: "pending",
-        });
-
-        if (!invitation) {
-            return res.status(404).json({
-                message: "Invalid invitation",
-            });
-        }
-
-        const existingMembership =
-            await Membership.findOne({
-                userId: req.user.id,
-                orgId: invitation.orgId,
-            });
-
-        if (existingMembership) {
-            return res.status(400).json({
-                message:
-                    "You are already a member of this organization",
-            });
-        }
-
-        await Membership.create({
-            userId: req.user.id,
-            orgId: invitation.orgId,
-            role: invitation.role,
-            departmentId:
-                invitation.departmentId || null,
-        });
-
-        invitation.status = "accepted";
-        await invitation.save();
 
         res.json({
-            success: true,
-            message:
-                "Successfully joined organization",
+
+            orgId: {
+                _id: org._id,
+                name: org.name
+            },
+
+            role: "member"
+
         });
+
 
     } catch (error) {
-        console.error(error);
 
         res.status(500).json({
-            message: error.message,
+            message: error.message
         });
-    }
-};
 
-module.exports = {
-    getInvitation,
-    acceptInvitation,
+    }
+
+};
+exports.acceptInvitation = async (req, res) => {
+
+    try {
+
+        const org =
+            await Organization.findOne({
+                inviteToken: req.params.token
+            });
+
+
+        if (!org) {
+
+            return res.status(404).json({
+                message: "Invalid invitation"
+            });
+
+        }
+
+
+        org.members = org.members || [];
+
+
+        const exists =
+            org.members.some(
+                m =>
+                    m.user &&
+                    m.user.toString() === req.user.id.toString()
+            );
+
+
+        if (exists) {
+
+            return res.status(400).json({
+                message: "Already joined"
+            });
+
+        }
+
+
+
+        // add in Organization members
+        org.members.push({
+
+            user: req.user.id,
+
+            role: "member"
+
+        });
+
+
+
+        await org.save();
+
+
+
+        // add in Membership collection (dashboard uses this)
+        await Membership.create({
+
+            userId: req.user.id,
+
+            orgId: org._id,
+
+            role: "user",
+
+            departmentId: null
+
+        });
+
+
+
+        res.json({
+
+            message: "Joined successfully"
+
+        });
+
+
+
+    } catch (error) {
+
+        console.error("ACCEPT INVITE ERROR:", error);
+
+        res.status(500).json({
+
+            message: error.message
+
+        });
+
+    }
+
 };

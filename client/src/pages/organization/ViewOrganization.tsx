@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import Navbar from "../../components/Navbar";
 import Topbar from "../../components/Topbar";
 import { useOrg } from "../../context/OrgContext";
+
 
 export default function ViewOrganization() {
     const { activeOrg } = useOrg();
@@ -10,6 +11,8 @@ export default function ViewOrganization() {
     const [organization, setOrganization] = useState<any>(null);
     const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showInvite, setShowInvite] = useState(false);
+    const [inviteLink, setInviteLink] = useState("");
 
     useEffect(() => {
         if (!activeOrg?._id) return;
@@ -19,26 +22,28 @@ export default function ViewOrganization() {
                 const token = localStorage.getItem("token");
 
                 const [orgRes, membersRes] = await Promise.all([
-                    axios.get(
-                        `/api/orgs/${activeOrg._id}`,
+                    api.get(
+                        `/orgs/${activeOrg._id}`,
                         {
                             headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
+                                Authorization: `Bearer ${token}`
+                            }
                         }
                     ),
-                    axios.get(
-                        `/api/orgs/${activeOrg._id}/members`,
+
+                    api.get(
+                        `/orgs/${activeOrg._id}/members`,
                         {
                             headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
+                                Authorization: `Bearer ${token}`
+                            }
                         }
                     ),
                 ]);
 
                 setOrganization(orgRes.data);
-                setMembers(membersRes.data);
+
+                setMembers(membersRes.data.members || []);
 
             } catch (error) {
                 console.error(error);
@@ -60,8 +65,8 @@ export default function ViewOrganization() {
         try {
             const token = localStorage.getItem("token");
 
-            await axios.delete(
-                `/api/orgs/${activeOrg._id}`,
+            await api.delete(
+                `/orgs/${activeOrg._id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -80,6 +85,27 @@ export default function ViewOrganization() {
                 error?.response?.data?.message ||
                 "Failed to delete organization"
             );
+        }
+    };
+    const generateInvite = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            const res = await api.post(
+                `/orgs/${activeOrg._id}/invite`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            setInviteLink(res.data.link);
+
+        } catch (error) {
+            console.error(error);
+            alert("Failed to generate invite link");
         }
     };
 
@@ -114,12 +140,24 @@ export default function ViewOrganization() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={handleDeleteOrganization}
-                            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
-                        >
-                            Delete Organization
-                        </button>
+                        <div className="flex gap-3">
+
+                            <button
+                                onClick={() => setShowInvite(true)}
+                                className="bg-blue-600 text-white px-5 py-2 rounded-lg"
+                            >
+                                Invite Members
+                            </button>
+
+
+                            <button
+                                onClick={handleDeleteOrganization}
+                                className="bg-red-600 text-white px-5 py-2 rounded-lg"
+                            >
+                                Delete Organization
+                            </button>
+
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-6 mt-8">
@@ -170,50 +208,54 @@ export default function ViewOrganization() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full table-fixed">
 
                             <thead>
                                 <tr className="border-b">
-                                    <th className="text-left py-3">
+
+                                    <th className="text-left py-3 px-4 w-1/4">
                                         Name
                                     </th>
 
-                                    <th className="text-left py-3">
+                                    <th className="text-left py-3 px-4 w-1/4">
                                         Email
                                     </th>
 
-                                    <th className="text-left py-3">
+                                    <th className="text-left py-3 px-4 w-1/4">
                                         Department
                                     </th>
 
-                                    <th className="text-left py-3">
+                                    <th className="text-left py-3 px-4 w-1/4">
                                         Role
                                     </th>
+
                                 </tr>
                             </thead>
 
+
                             <tbody>
-                                {members.map((member) => (
+                                {Array.isArray(members) && members.map((member) => (
                                     <tr
                                         key={member._id}
                                         className="border-b"
                                     >
-                                        <td className="py-4">
+
+                                        <td className="py-4 px-4">
                                             {member.user?.name}
                                         </td>
 
-                                        <td className="py-4">
+                                        <td className="py-4 px-4">
                                             {member.user?.email}
                                         </td>
 
-                                        <td className="py-4">
-                                            {member.department?.name ||
-                                                "-"}
+                                        <td className="py-4 px-4">
+                                            {member.department?.name || "-"}
                                         </td>
 
-                                        <td className="py-4 capitalize">
+                                        <td className="py-4 px-4 capitalize">
                                             {member.role}
                                         </td>
+
                                     </tr>
                                 ))}
                             </tbody>
@@ -223,6 +265,77 @@ export default function ViewOrganization() {
 
                 </div>
             </div>
+            {showInvite && (
+
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+                    <div className="bg-white rounded-xl p-8 w-[450px] shadow-lg">
+
+                        <h2 className="text-2xl font-bold mb-5">
+                            Invite Team Members
+                        </h2>
+
+
+                        <p className="text-gray-500 mb-5">
+                            Generate a link and share it with your team members.
+                        </p>
+
+
+                        <button
+                            onClick={generateInvite}
+                            className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg"
+                        >
+                            Generate Invite Link
+                        </button>
+
+
+                        {inviteLink && (
+
+                            <div className="mt-6">
+
+                                <p className="text-sm text-gray-500 mb-2">
+                                    Share this link
+                                </p>
+
+
+                                <input
+                                    value={inviteLink}
+                                    readOnly
+                                    className="border rounded-lg p-3 w-full"
+                                />
+
+
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(inviteLink);
+                                        alert("Link copied");
+                                    }}
+                                    className="mt-3 bg-gray-800 text-white px-5 py-2 rounded-lg"
+                                >
+                                    Copy Link
+                                </button>
+
+                            </div>
+
+                        )}
+
+
+                        <button
+                            onClick={() => {
+                                setShowInvite(false);
+                                setInviteLink("");
+                            }}
+                            className="mt-6 text-red-600"
+                        >
+                            Close
+                        </button>
+
+
+                    </div>
+
+                </div>
+
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 import {
     ResponsiveContainer,
@@ -31,11 +31,11 @@ export default function TicketTrendChart({ orgId }: Props) {
 
             try {
 
-                const res = await axios.get(
-                    `/api/tickets/trends?orgId=${orgId}`
+                const res = await api.get(
+                    `/tickets/trends?orgId=${orgId}`
                 );
 
-                setData(res.data);
+                setData(res.data.data || []);
 
             } catch (error) {
 
