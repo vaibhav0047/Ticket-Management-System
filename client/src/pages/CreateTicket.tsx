@@ -1,6 +1,15 @@
 import { useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import {
+    AlertCircle,
+    ChevronLeft,
+    Info,
+    Layout,
+    Send,
+    ShieldAlert,
+    Users
+} from "lucide-react";
 
 export default function CreateTicket() {
     const navigate = useNavigate();
@@ -12,93 +21,140 @@ export default function CreateTicket() {
         department: "IT",
     });
 
-    const handleChange = (e: any) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         try {
             await api.post("/tickets/create", form);
-            alert("Ticket created!");
             navigate("/dashboard");
         } catch (err) {
-            console.log(err);
+            console.error("Failed to create ticket:", err);
         }
     };
 
-    // Priority colors
-    const priorityColor = {
-        Low: "text-green-600 bg-green-50 border-green-200",
-        Medium: "text-yellow-600 bg-yellow-50 border-yellow-200",
-        High: "text-red-600 bg-red-50 border-red-200",
-    };
-
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-            <form
-                onSubmit={handleSubmit}
-                className="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg"
-            >
-                <h1 className="text-2xl font-bold mb-6 text-center">
-                    Create New Ticket
-                </h1>
+        <div className="min-h-screen bg-[#F4F5F7] text-[#172B4D] font-sans p-6">
+            {/* Header / Breadcrumbs */}
+            <div className="max-w-3xl mx-auto mb-6 flex items-center justify-between">
+                <div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center text-sm text-slate-500 hover:text-blue-600 transition-colors mb-2"
+                    >
+                        <ChevronLeft size={16} />
+                        Back to Dashboard
+                    </button>
+                    <h1 className="text-2xl font-semibold tracking-tight">Create Ticket</h1>
+                </div>
+                <div className="hidden md:block">
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold uppercase">New Request</span>
+                </div>
+            </div>
 
-                {/* TITLE */}
-                <input
-                    name="title"
-                    placeholder="Ticket Title"
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            <div className="max-w-3xl mx-auto bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+                <form onSubmit={handleSubmit} className="p-8">
+                    {/* TITLE SECTION */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-bold text-slate-700 mb-1">
+                            Summary <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            required
+                            name="title"
+                            placeholder="e.g., Cannot access VPN"
+                            onChange={handleChange}
+                            className="w-full border-2 border-slate-200 bg-slate-50 p-2.5 rounded focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
+                        />
+                        <p className="mt-1 text-[11px] text-slate-500 italic">Summarize the issue in one sentence.</p>
+                    </div>
 
-                {/* DESCRIPTION */}
-                <textarea
-                    name="description"
-                    placeholder="Describe your issue..."
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-xl mb-4 h-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                    {/* TWO COLUMN ROW */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        {/* PRIORITY */}
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-1">
+                                <ShieldAlert size={14} className="text-slate-400" />
+                                Priority
+                            </label>
+                            <select
+                                name="priority"
+                                onChange={handleChange}
+                                value={form.priority}
+                                className="w-full border-2 border-slate-200 bg-slate-50 p-2.5 rounded focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-medium"
+                            >
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent / Blocker</option>
+                            </select>
+                        </div>
 
-                {/* PRIORITY */}
-                <label className="block text-sm font-medium mb-2">
-                    Priority
-                </label>
+                        {/* DEPARTMENT */}
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-1">
+                                <Users size={14} className="text-slate-400" />
+                                Assigned Department
+                            </label>
+                            <select
+                                name="department"
+                                onChange={handleChange}
+                                value={form.department}
+                                className="w-full border-2 border-slate-200 bg-slate-50 p-2.5 rounded focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-medium"
+                            >
+                                <option value="IT">IT Infrastructure</option>
+                                <option value="HR">Human Resources</option>
+                                <option value="Finance">Finance & Payroll</option>
+                                <option value="Support">Customer Success</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <select
-                    name="priority"
-                    onChange={handleChange}
-                    value={form.priority}
-                    className={`w-full border p-3 rounded-xl mb-4 font-semibold ${priorityColor[form.priority as keyof typeof priorityColor]}`}
-                >
-                    <option value="Low">🟢 Low Priority</option>
-                    <option value="Medium">🟡 Medium Priority</option>
-                    <option value="High">🔴 High Priority</option>
-                </select>
+                    {/* DESCRIPTION */}
+                    <div className="mb-8">
+                        <label className="block text-sm font-bold text-slate-700 mb-1">
+                            Description
+                        </label>
+                        <div className="relative">
+                            <textarea
+                                name="description"
+                                placeholder="Please provide steps to reproduce or specific error messages..."
+                                onChange={handleChange}
+                                className="w-full border-2 border-slate-200 bg-slate-50 p-3 rounded h-40 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm leading-relaxed"
+                            />
+                            <div className="absolute bottom-3 right-3 opacity-20 pointer-events-none">
+                                <Layout size={40} />
+                            </div>
+                        </div>
+                    </div>
 
-                {/* DEPARTMENT */}
-                <label className="block text-sm font-medium mb-2">
-                    Department
-                </label>
+                    {/* INFO BOX */}
+                    <div className="flex items-start gap-3 bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r">
+                        <AlertCircle className="text-blue-600 mt-0.5" size={18} />
+                        <div>
+                            <p className="text-sm text-blue-800 font-medium">Standard SLA applies</p>
+                            <p className="text-xs text-blue-600 mt-0.5">Tickets are usually responded to within 4 business hours.</p>
+                        </div>
+                    </div>
 
-                <select
-                    name="department"
-                    onChange={handleChange}
-                    value={form.department}
-                    className="w-full border p-3 rounded-xl mb-6"
-                >
-                    <option value="IT">IT</option>
-                    <option value="HR"> HR</option>
-                    <option value="Finance"> Finance</option>
-                    <option value="Support"> Support</option>
-                </select>
-
-                {/* BUTTON */}
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all">
-                    Create Ticket
-                </button>
-            </form>
+                    {/* ACTION BUTTONS */}
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/dashboard")}
+                            className="px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button className="flex items-center gap-2 bg-[#0052CC] hover:bg-[#0747A6] text-white px-6 py-2 rounded font-semibold text-sm transition-all shadow-md active:scale-95">
+                            <Send size={14} />
+                            Create Ticket
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

@@ -1,32 +1,105 @@
-const User = require("../models/User");
+const Membership = require("../models/Membership");
+
 
 exports.getUsers = async (req, res) => {
+
     try {
-        const users = await User.find().select("-password");
+
+
+        const members = await Membership.find({
+
+            // optional: only current org
+            // orgId:req.user.orgId
+
+        })
+            .populate({
+                path: "userId",
+                select: "name email"
+            })
+            .populate({
+                path: "departmentId",
+                select: "name"
+            });
+
+
+
+        const users = members.map((member) => ({
+
+            _id: member.userId._id,
+
+            name: member.userId.name,
+
+            email: member.userId.email,
+
+            role: member.role,
+
+            department: member.departmentId
+
+        }));
+
+
+
         res.json(users);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Failed to fetch users" });
+
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        res.status(500).json({
+
+            message: error.message
+
+        });
+
     }
+
 };
 
+
+
+
+
 exports.updateUserRole = async (req, res) => {
+
     try {
+
         const { role, department } = req.body;
 
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            { role, department },
-            { new: true }
-        ).select("-password");
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const member =
+            await Membership.findOneAndUpdate(
 
-        res.json(user);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Failed to update user" });
+                {
+                    userId: req.params.id
+                },
+
+
+                {
+                    role,
+                    departmentId: department
+                },
+
+
+                {
+                    new: true
+                }
+
+            );
+
+
+        res.json(member);
+
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
     }
+
 };

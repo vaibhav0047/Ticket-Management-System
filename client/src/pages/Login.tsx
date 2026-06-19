@@ -107,14 +107,13 @@ export default function Login() {
                     className="w-full border p-3 rounded mb-4"
                     required
                 />
-                <div className="relative mb-4">
+                <div className="relative mb-2">
                     <input
                         type={
                             showPassword
                                 ? "text"
                                 : "password"
                         }
-
                         name="password"
                         placeholder="Password"
                         value={formData.password}
@@ -128,9 +127,7 @@ export default function Login() {
                         onClick={() =>
                             setShowPassword(!showPassword)
                         }
-
                         className="absolute right-3 top-1/2 -translate-y-1/2"
-
                     >
                         {
                             showPassword
@@ -138,6 +135,15 @@ export default function Login() {
                                 : <Eye size={18} />
                         }
                     </button>
+                </div>
+
+                <div className="flex justify-end mb-4">
+                    <Link
+                        to="/forgot-password"
+                        className="text-sm text-blue-600 hover:underline"
+                    >
+                        Forgot Password?
+                    </Link>
                 </div>
 
                 <button
