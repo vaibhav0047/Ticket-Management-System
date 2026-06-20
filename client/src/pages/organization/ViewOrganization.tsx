@@ -230,8 +230,13 @@ export default function ViewOrganization() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Your Role</p>
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 ring-1 ring-inset ring-purple-200 mt-1">
-                                        Admin
+
+                                    <span
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset capitalize mt-1 ${roleBadgeColor(
+                                            organization?.myRole
+                                        )}`}
+                                    >
+                                        {organization?.myRole || "N/A"}
                                     </span>
                                 </div>
                             </div>
