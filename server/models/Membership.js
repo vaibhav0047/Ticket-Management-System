@@ -5,31 +5,44 @@ const membershipSchema = new mongoose.Schema(
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
+            required: true
         },
+
 
         orgId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
-            required: true,
+            required: true
         },
+
 
         departmentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Department",
-            default: null,
+            default: null
         },
+
 
         role: {
             type: String,
-            enum: ["admin", "lead", "user"],
-            default: "user",
-        },
+
+            enum: [
+                "owner",
+                "org_admin",
+                "department_manager",
+                "team_lead",
+                "member",
+                "viewer"
+            ],
+
+            default: "member"
+        }
+
     },
     {
-        timestamps: true,
-    }
-);
+        timestamps: true
+    });
+
 
 module.exports = mongoose.model(
     "Membership",

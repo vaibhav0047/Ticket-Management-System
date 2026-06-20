@@ -5,13 +5,7 @@ exports.getUsers = async (req, res) => {
 
     try {
 
-
-        const members = await Membership.find({
-
-            // optional: only current org
-            // orgId:req.user.orgId
-
-        })
+        const members = await Membership.find({})
             .populate({
                 path: "userId",
                 select: "name email"
@@ -19,24 +13,29 @@ exports.getUsers = async (req, res) => {
             .populate({
                 path: "departmentId",
                 select: "name"
+            })
+            .populate({
+                path: "orgId",
+                select: "name"
             });
 
 
 
-        const users = members.map((member) => ({
+        const users = members.map(member => ({
 
-            _id: member.userId._id,
+            _id: member.userId?._id,
 
-            name: member.userId.name,
+            name: member.userId?.name,
 
-            email: member.userId.email,
+            email: member.userId?.email,
 
             role: member.role,
 
-            department: member.departmentId
+            department: member.departmentId || null,
+
+            organization: member.orgId
 
         }));
-
 
 
         res.json(users);
@@ -47,11 +46,8 @@ exports.getUsers = async (req, res) => {
 
         console.error(error);
 
-
         res.status(500).json({
-
             message: error.message
-
         });
 
     }

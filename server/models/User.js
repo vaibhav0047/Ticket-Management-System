@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-console.log("User model file loaded");
 
 const userSchema = new mongoose.Schema({
+
     name: {
         type: String,
         required: true
@@ -18,25 +18,7 @@ const userSchema = new mongoose.Schema({
         required: true
     },
 
-    role: {
-        type: String,
-        enum: ["admin", "developer", "user"],
-        default: "user"
-    },
 
-    department: {
-        type: String,
-        enum: [
-            "Engineering",
-            "Product",
-            "Sales",
-            "HR",
-            "IT Support"
-        ],
-        default: "Engineering"
-    },
-
-    // Password reset fields
     resetOtp: {
         type: String
     },
@@ -44,7 +26,14 @@ const userSchema = new mongoose.Schema({
     resetOtpExpiry: {
         type: Date
     }
-}, { timestamps: true });
+
+},
+    {
+        timestamps: true
+    });
 
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model(
+    "User",
+    userSchema
+);

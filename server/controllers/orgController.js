@@ -31,11 +31,18 @@ const createOrganization = async (req, res) => {
         });
 
         // Create Creator Membership
+
         await Membership.create({
-            userId: req.user.id,
-            orgId: org._id,
-            role: "admin",
-            departmentId: null,
+
+            userId: req.user._id,
+
+            orgId: invitation.orgId,
+
+            role: invitation.role || "member",
+
+            departmentId:
+                req.body.departmentId || invitation.departmentId || null
+
         });
 
         // Store created departments
@@ -178,6 +185,7 @@ const getMyOrganizations = async (req, res) => {
 };
 const getOrganization = async (req, res) => {
     try {
+
         const organization = await Organization.findById(req.params.id);
 
         if (!organization) {
@@ -186,14 +194,24 @@ const getOrganization = async (req, res) => {
             });
         }
 
-        res.json(organization);
+        const membership = await Membership.findOne({
+            orgId: req.params.id,
+            userId: req.user.id
+        });
+
+        res.json({
+            ...organization.toObject(),
+            myRole: membership?.role || null
+        });
 
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
             message: error.message
         });
+
     }
 };
 const getOrganizationMembers = async (req, res) => {
@@ -341,15 +359,29 @@ const joinOrganization = async (req, res) => {
         }
 
 
+        const invitation = await Invitation.findOne({
+            orgId: organization._id,
+            email: req.user.email,
+            status: "pending"
+        });
 
-        const alreadyMember =
-            organization.members.some(
-                member =>
-                    member.user.toString() === req.user._id.toString()
-            );
+
+        if (!invitation) {
+            return res.status(400).json({
+                message: "Invitation not found"
+            });
+        }
 
 
-        if (alreadyMember) {
+
+        const existingMember =
+            await Membership.findOne({
+                orgId: organization._id,
+                userId: req.user._id
+            });
+
+
+        if (existingMember) {
 
             return res.status(400).json({
                 message: "Already a member"
@@ -359,17 +391,24 @@ const joinOrganization = async (req, res) => {
 
 
 
-        organization.members.push({
+        await Membership.create({
 
-            user: req.user._id,
+            userId: req.user._id,
 
-            role: "member"
+            orgId: invitation.orgId,
+
+            role: invitation.role || "member",
+
+            departmentId:
+                req.body.departmentId || invitation.departmentId || null
 
         });
 
 
 
-        await organization.save();
+        invitation.status = "accepted";
+
+        await invitation.save();
 
 
 
@@ -385,9 +424,11 @@ const joinOrganization = async (req, res) => {
 
     } catch (error) {
 
+        console.error(error);
+
         res.status(500).json({
             message: error.message
-        })
+        });
 
     }
 

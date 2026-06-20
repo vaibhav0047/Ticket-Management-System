@@ -17,16 +17,11 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes (models will be loaded when required by controllers)
 
 const userRoutes = require("./routes/userRoutes");
-
-
 const authRoutes = require("./routes/authRoutes");
-
-
 const analyticsRoutes = require("./routes/analyticsRoutes");
-
-
 const ticketRoutes = require("./routes/ticketRoutes");
 const orgRoutes = require("./routes/orgRoutes");
+const departmentRoutes = require("./routes/departmentRoutes");
 const invitationRoutes =
     require("./routes/invitationRoutes");
 
@@ -40,7 +35,10 @@ app.use(
     orgRoutes
 );
 
-
+app.use(
+    "/api/departments",
+    departmentRoutes
+);
 app.use("/api/users", userRoutes);
 
 app.use("/api/auth", authRoutes);

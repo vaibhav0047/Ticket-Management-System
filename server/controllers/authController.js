@@ -108,23 +108,27 @@ exports.verifyOtp = async (req, res) => {
         const userCount = await User.countDocuments();
 
         const user = await User.create({
+
             name: pendingUser.name,
+
             email: pendingUser.email,
-            password: pendingUser.password,
-            role: userCount === 0 ? "admin" : "user",
-            department: "Engineering"
+
+            password: pendingUser.password
+
         });
 
         await PendingUser.deleteMany({ email });
 
         return res.status(201).json({
+
             message: "Account created successfully",
+
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email,
-                role: user.role
+                email: user.email
             }
+
         });
 
     } catch (err) {

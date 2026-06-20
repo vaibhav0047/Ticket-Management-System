@@ -1,16 +1,15 @@
 const Organization = require("../models/Organization");
 const Membership = require("../models/Membership");
+const Department = require("../models/Department");
 
 
 exports.getInvitation = async (req, res) => {
 
     try {
 
-        const org =
-            await Organization.findOne({
-                inviteToken: req.params.token
-            })
-                .populate("createdBy", "name email");
+        const org = await Organization.findOne({
+            inviteToken: req.params.token
+        });
 
 
         if (!org) {
@@ -22,6 +21,12 @@ exports.getInvitation = async (req, res) => {
         }
 
 
+
+        const departments = await Department.find({
+            orgId: org._id
+        });
+
+
         res.json({
 
             orgId: {
@@ -29,7 +34,9 @@ exports.getInvitation = async (req, res) => {
                 name: org.name
             },
 
-            role: "member"
+            role: "member",
+
+            departments
 
         });
 
@@ -43,14 +50,23 @@ exports.getInvitation = async (req, res) => {
     }
 
 };
+
+
+
+
+
 exports.acceptInvitation = async (req, res) => {
 
     try {
 
-        const org =
-            await Organization.findOne({
-                inviteToken: req.params.token
-            });
+
+        const { departmentId, role } = req.body;
+
+
+        const org = await Organization.findOne({
+            inviteToken: req.params.token
+        });
+
 
 
         if (!org) {
@@ -62,15 +78,16 @@ exports.acceptInvitation = async (req, res) => {
         }
 
 
-        org.members = org.members || [];
 
 
-        const exists =
-            org.members.some(
-                m =>
-                    m.user &&
-                    m.user.toString() === req.user.id.toString()
-            );
+        const exists = await Membership.findOne({
+
+            userId: req.user.id,
+
+            orgId: org._id
+
+        });
+
 
 
         if (exists) {
@@ -83,33 +100,21 @@ exports.acceptInvitation = async (req, res) => {
 
 
 
-        // add in Organization members
-        org.members.push({
-
-            user: req.user.id,
-
-            role: "member"
-
-        });
 
 
-
-        await org.save();
-
-
-
-        // add in Membership collection (dashboard uses this)
         await Membership.create({
 
             userId: req.user.id,
 
             orgId: org._id,
 
-            role: "user",
+            departmentId: departmentId || null,
 
-            departmentId: null
+            role: role || "member"
 
         });
+
+
 
 
 
@@ -123,13 +128,16 @@ exports.acceptInvitation = async (req, res) => {
 
     } catch (error) {
 
-        console.error("ACCEPT INVITE ERROR:", error);
+
+        console.error(error);
+
 
         res.status(500).json({
 
             message: error.message
 
         });
+
 
     }
 
