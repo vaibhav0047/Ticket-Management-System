@@ -49,7 +49,16 @@ export default function CreateOrganization() {
     };
 
     const addMember = () => {
-        setMembers([...members, { email: "", department: departments[0] || "", role: "user" }]);
+
+        setMembers([
+            ...members,
+            {
+                email: "",
+                department: departments[0] || "",
+                role: "member"
+            }
+        ]);
+
     };
 
     const updateMember = (index: number, field: keyof Member, value: string) => {
@@ -303,15 +312,37 @@ export default function CreateOrganization() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <ShieldCheck size={14} className={member.role === 'admin' ? 'text-purple-500' : 'text-slate-400'} />
+                                                        <ShieldCheck size={14} className={
+                                                            member.role === "org_admin"
+                                                                ? 'text-purple-500'
+                                                                : 'text-slate-400'
+                                                        } />
                                                         <select
                                                             value={member.role}
                                                             onChange={(e) => updateMember(index, "role", e.target.value)}
                                                             className="bg-transparent outline-none text-sm font-medium text-slate-600"
                                                         >
-                                                            <option value="admin">Admin</option>
-                                                            <option value="lead">Lead</option>
-                                                            <option value="user">User</option>
+
+                                                            <option value="org_admin">
+                                                                Organization Admin
+                                                            </option>
+
+                                                            <option value="department_manager">
+                                                                Department Manager
+                                                            </option>
+
+                                                            <option value="team_lead">
+                                                                Team Lead
+                                                            </option>
+
+                                                            <option value="member">
+                                                                Member
+                                                            </option>
+
+                                                            <option value="viewer">
+                                                                Viewer
+                                                            </option>
+
                                                         </select>
                                                     </div>
                                                 </td>

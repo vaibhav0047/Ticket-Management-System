@@ -18,7 +18,10 @@ export default function AcceptInvite() {
         const fetchInvite = async () => {
             try {
                 const res = await axios.get(`/api/invitations/${token}`);
+
                 setInvite(res.data);
+                setDepartments(res.data.departments || []);
+                console.log(res.data);
             } catch (err: any) {
                 console.error(err);
                 setError(
@@ -47,7 +50,9 @@ export default function AcceptInvite() {
         try {
             await axios.post(
                 `/api/invitations/accept/${token}`,
-                {},
+                {
+                    departmentId: selectedDepartment
+                },
                 { headers: { Authorization: `Bearer ${tokenValue}` } }
             );
             window.location.href = "/dashboard";
@@ -168,18 +173,43 @@ export default function AcceptInvite() {
                             </div>
                         )}
                     </div>
-                    <select
-                        value={selectedDepartment}
-                        onChange={(e) => setSelectedDepartment(e.target.value)}
-                    >
-                        <option value="">Select Department</option>
+                    <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Select Department
+                        </label>
 
-                        {departments.map((dept: any) => (
-                            <option key={dept._id} value={dept._id}>
-                                {dept.name}
+                        <select
+                            value={selectedDepartment}
+                            onChange={(e) =>
+                                setSelectedDepartment(e.target.value)
+                            }
+                            className="
+            w-full
+            border
+            border-gray-300
+            rounded-lg
+            px-3
+            py-3
+            text-sm
+            focus:outline-none
+            focus:ring-2
+            focus:ring-blue-500
+        "
+                        >
+                            <option value="">
+                                Choose Department
                             </option>
-                        ))}
-                    </select>
+
+                            {departments.map((dept: any) => (
+                                <option
+                                    key={dept._id}
+                                    value={dept._id}
+                                >
+                                    {dept.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
 
                     {/* Action buttons */}

@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-
 type Org = {
     _id: string;
     name: string;
-    role: "admin" | "lead" | "user";
+    role: "owner" | "org_admin" | "department_manager" | "team_lead" | "member" | "viewer";
+    department?: {
+        _id: string;
+        name: string;
+    };
 };
-
 
 type OrgContextType = {
     orgs: Org[];
@@ -16,22 +18,13 @@ type OrgContextType = {
     loading: boolean;
 };
 
-
 const OrgContext = createContext<OrgContextType | null>(null);
 
-
-
-export function OrgProvider({
-    children
-}: {
-    children: React.ReactNode
-}) {
+export function OrgProvider({ children }: { children: React.ReactNode }) {
 
     const [orgs, setOrgs] = useState<Org[]>([]);
     const [activeOrg, setActiveOrg] = useState<Org | null>(null);
     const [loading, setLoading] = useState(true);
-
-
 
     useEffect(() => {
 
@@ -40,7 +33,6 @@ export function OrgProvider({
             try {
 
                 const token = localStorage.getItem("token");
-
 
                 const res = await axios.get(
                     "/api/orgs/my",
@@ -51,26 +43,16 @@ export function OrgProvider({
                     }
                 );
 
-
                 const organizations = res.data;
-
 
                 setOrgs(organizations);
 
-
-                if (organizations.length > 0) {
-
+                if (organizations.length)
                     setActiveOrg(organizations[0]);
-
-                }
-
 
             } catch (err) {
 
-                console.error(
-                    "Org fetch failed:",
-                    err
-                );
+                console.error("Org fetch failed:", err);
 
             } finally {
 
@@ -80,16 +62,12 @@ export function OrgProvider({
 
         };
 
-
         fetchOrgs();
-
 
     }, []);
 
 
-
     return (
-
         <OrgContext.Provider
             value={{
                 orgs,
@@ -98,23 +76,16 @@ export function OrgProvider({
                 loading
             }}
         >
-
             {children}
-
         </OrgContext.Provider>
-
     );
 
 }
 
 
-
-
-
 export function useOrg() {
 
     const context = useContext(OrgContext);
-
 
     if (!context) {
 
@@ -123,7 +94,6 @@ export function useOrg() {
         );
 
     }
-
 
     return context;
 

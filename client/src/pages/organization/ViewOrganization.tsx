@@ -13,6 +13,7 @@ export default function ViewOrganization() {
     const [showInvite, setShowInvite] = useState(false);
     const [inviteLink, setInviteLink] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [departments, setDepartments] = useState<any[]>([]);
 
     useEffect(() => {
         if (!activeOrg?._id) return;
@@ -21,17 +22,26 @@ export default function ViewOrganization() {
             try {
                 const token = localStorage.getItem("token");
 
-                const [orgRes, membersRes] = await Promise.all([
+                const [orgRes, membersRes, deptRes] = await Promise.all([
                     api.get(`/orgs/${activeOrg._id}`, {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
+
                     api.get(`/orgs/${activeOrg._id}/members`, {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
+
+                    api.get(`/departments/organization/${activeOrg._id}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    })
                 ]);
+
 
                 setOrganization(orgRes.data);
                 setMembers(membersRes.data.members || []);
+                setDepartments(deptRes.data || []);
+                console.log("MEMBERS", membersRes.data);
+                console.log("DEPARTMENTS", deptRes.data);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -99,9 +109,19 @@ export default function ViewOrganization() {
                 return "bg-gray-100 text-gray-700 ring-gray-200";
         }
     };
+    const membersWithDepartments = members.map((member) => {
 
-    const filteredMembers = members.filter((member) => {
+        return {
+            ...member,
+            department: member.department || null
+        };
+
+    });
+
+
+    const filteredMembers = membersWithDepartments.filter((member) => {
         const name = member.user?.name?.toLowerCase() || "";
+
         const email = member.user?.email?.toLowerCase() || "";
         const dept = member.department?.name?.toLowerCase() || "";
         const term = searchTerm.toLowerCase();
@@ -109,6 +129,7 @@ export default function ViewOrganization() {
     });
 
     if (loading) {
+
         return (
             <div className="bg-slate-100 min-h-screen">
                 <Navbar />
@@ -216,7 +237,7 @@ export default function ViewOrganization() {
                                 <div>
                                     <p className="text-sm text-gray-500">Departments</p>
                                     <p className="text-2xl font-semibold text-gray-900">
-                                        {organization?.departmentCount || 0}
+                                        {departments.length}
                                     </p>
                                 </div>
                             </div>

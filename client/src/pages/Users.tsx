@@ -1,414 +1,313 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Topbar from "../components/Topbar";
+import { useOrg } from "../context/OrgContext";
 
 
-interface User {
+interface Member {
 
     _id: string;
-
-    name: string;
-
-    email: string;
-
-    role: string;
+    user: {
+        _id: string;
+        name: string;
+        email: string;
+    };
 
     department?: {
+        _id: string;
         name: string;
-    };
+    } | null;
+
+    role: string;
+    designation?: string;
 
 }
+const designationMap: any = {
+
+    "Engineering Team": [
+        "Engineering Manager",
+        "Tech Lead",
+        "Senior Software Engineer",
+        "Software Engineer",
+        "Backend Engineer",
+        "Frontend Engineer",
+        "Full Stack Developer",
+        "QA Engineer",
+        "DevOps Engineer"
+    ],
 
 
+    "Product Team": [
+        "Product Manager",
+        "Associate Product Manager",
+        "Product Owner",
+        "Business Analyst",
+        "Product Analyst"
+    ],
 
+
+    "Support Team": [
+        "Support Manager",
+        "Customer Success Manager",
+        "Support Engineer",
+        "Technical Support Engineer"
+    ],
+
+
+    "Sales Team": [
+        "Sales Manager",
+        "Account Executive",
+        "Business Development Executive",
+        "Sales Associate"
+    ],
+
+
+    "Design Team": [
+        "Design Lead",
+        "UI Designer",
+        "UX Designer",
+        "Product Designer",
+        "Visual Designer"
+    ]
+
+};
 export default function Users() {
-
-    const [users, setUsers] = useState<User[]>([]);
-
-    const currentUser = JSON.parse(
-        localStorage.getItem("user") || "{}"
+    const [currentUser] = useState(
+        JSON.parse(
+            localStorage.getItem("user") || "{}"
+        )
     );
+    const [members, setMembers] = useState<Member[]>([]);
+    const { activeOrg } = useOrg();
 
 
-    const isAdmin = currentUser.role === "admin";
-
-
-
-    const fetchUsers = async () => {
-
-        try {
-
-            const token = localStorage.getItem("token");
-
-
-            const res = await axios.get(
-                "http://localhost:5000/api/users",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-
-            setUsers(res.data || []);
-
-
-        } catch (err) {
-
-            console.error(
-                "Failed to fetch users:",
-                err
-            );
-
-        }
-
-    };
-
-
-
-
-    const updateUser = async (
-        id: string,
-        role: string,
-        department: string
-    ) => {
-
-
-        try {
-
-            const token = localStorage.getItem("token");
-
-
-            await axios.put(
-
-                `http://localhost:5000/api/users/${id}`,
-
-                {
-                    role,
-                    department
-                },
-
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-
-            );
-
-
-            fetchUsers();
-
-
-        } catch (err) {
-
-            console.error(
-                "Failed to update user:",
-                err
-            );
-
-        }
-
-    };
-
-
-
-
-    useEffect(() => {
-
-        fetchUsers();
-
-    }, []);
-
-
-
-
-    return (
-
-        <div className="bg-slate-100 min-h-screen">
-
-            <Navbar />
-
-
-            <div className="ml-64 p-8">
-
-
-                <Topbar />
-
-
-                <h1 className="text-4xl font-bold mt-8 mb-8">
-                    Users Management
-                </h1>
-
-
-
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-
-
-                    <table className="w-full">
-
-
-                        <thead className="bg-slate-50">
-
-
-                            <tr>
-
-
-                                <th className="text-left p-4">
-                                    Name
-                                </th>
-
-
-                                <th className="text-left p-4">
-                                    Email
-                                </th>
-
-
-                                <th className="text-left p-4">
-                                    Department
-                                </th>
-
-
-                                <th className="text-left p-4">
-                                    Role
-                                </th>
-
-
-                                <th className="text-left p-4">
-                                    Action
-                                </th>
-
-
-                            </tr>
-
-
-                        </thead>
-
-
-
-
-
-                        <tbody>
-
-
-                            {
-                                users.map((user) => (
-
-
-                                    <UserRow
-
-                                        key={user._id}
-
-                                        user={user}
-
-                                        updateUser={updateUser}
-
-                                        isAdmin={isAdmin}
-
-                                    />
-
-
-                                ))
-                            }
-
-
-
-                        </tbody>
-
-
-
-                    </table>
-
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-    );
-
-}
-
-
-
-
-
-
-interface UserRowProps {
-
-    user: User;
-
-    updateUser: (
-        id: string,
-        role: string,
-        department: string
-    ) => void;
-
-    isAdmin: boolean;
-
-}
-
-
-
-
-
-
-function UserRow({
-    user,
-    updateUser,
-    isAdmin
-}: UserRowProps) {
-
-
-
-    const [role, setRole] =
-        useState(user.role);
-
-
-
-    const [department, setDepartment] =
-        useState(
-            user.department?.name || "Engineering"
+    const myMembership =
+        members.find(
+            m => m.user._id === currentUser.id
         );
 
 
+    const canEdit =
+        [
+            "owner",
+            "org_admin"
+        ].includes(myMembership?.role);
+    const fetchMembers = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await api.get(
+                `/orgs/${activeOrg?._id}/members`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setMembers(res.data.members || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    const updateMember = async (
+        id: string,
+        role: string,
+        designation: string
+    ) => {
+        try {
+
+            const token = localStorage.getItem("token");
 
 
+            await api.put(
+                `/users/${id}`,
+                {
+                    role,
+                    designation
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            fetchMembers();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    useEffect(() => {
+        if (activeOrg?._id)
+            fetchMembers();
+    }, [activeOrg]);
 
     return (
+        <div className="bg-slate-100 min-h-screen">
+            <Navbar />
+            <div className="ml-64 p-8">
+                <Topbar />
+                <h1 className="text-3xl font-bold mt-8 mb-6">
+                    Organization Members
+                </h1>
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <table className="w-full">
+                        <thead className="bg-slate-50">
+                            <tr>
+                                <th className="p-4 text-left">
+                                    Name
+                                </th>
+                                <th className="p-4 text-left">
+                                    Email
+                                </th>
+                                <th className="p-4 text-left">
+                                    Department
+                                </th>
+                                <th className="p-4 text-left">
+                                    Designation
+                                </th>
+                                <th className="p-4 text-left">
+                                    Role
+                                </th>
+                                <th className="p-4 text-left">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                members.map(member => (
+                                    <MemberRow
+                                        key={member._id}
+                                        member={member}
+                                        canEdit={canEdit}
+                                        updateMember={updateMember}
+                                    />
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    )
+}
+function MemberRow({
+    member,
+    canEdit,
+    updateMember
+}: {
+    member: Member;
+    canEdit: boolean;
+    updateMember:
+    (id: string, role: string, designation: string) => void;
+}) {
+    const [role, setRole] = useState(member.role);
+    const [designation, setDesignation] =
+        useState(member.designation || "");
+    const availableDesignations =
+        designationMap[
+        member.department?.name || ""
+        ] || [];
 
+    return (
         <tr className="border-t hover:bg-gray-50">
-
-
-            <td className="p-4">
-
-                {user.name}
-
+            <td className="p-4 font-medium">
+                {member.user.name}
             </td>
-
-
-
-            <td className="p-4">
-
-                {user.email}
-
+            <td className="p-4 text-gray-600">
+                {member.user.email}
             </td>
-
-
-
-
-
             <td className="p-4">
-
-
+                {
+                    member.department?.name ||
+                    "Not Assigned"
+                }
+            </td>
+            <td className="p-4">
                 <select
 
-                    disabled={!isAdmin}
+                    disabled={!canEdit}
 
-                    value={department}
+                    value={designation}
 
-                    onChange={(e) =>
-                        setDepartment(
-                            e.target.value
-                        )
+                    onChange={
+                        e => setDesignation(e.target.value)
                     }
 
-
-                    className="
-                    border rounded-lg 
-                    px-3 py-2 
-                    disabled:bg-gray-100
-                    "
+                    className="border rounded px-3 py-2"
 
                 >
 
 
-                    <option>
-                        Engineering
+                    <option value="">
+                        Select Designation
                     </option>
 
 
-                    <option>
-                        Product
-                    </option>
+                    {
+                        availableDesignations.map(
+                            (title: string) => (
+                                <option
+                                    key={title}
+                                    value={title}
+                                >
+                                    {title}
+                                </option>
+                            )
+                        )
 
+                    }
 
-                    <option>
-                        Sales
-                    </option>
-                    <option>
-                        HR
-                    </option>
-                    <option>
-                        IT Support
-                    </option>
 
                 </select>
-
             </td>
             <td className="p-4">
                 <select
-                    disabled={!isAdmin}
+                    disabled={!canEdit}
                     value={role}
-                    onChange={(e) =>
-                        setRole(
-                            e.target.value
-                        )
+                    onChange={
+                        e => setRole(e.target.value)
                     }
-                    className="
-                    border rounded-lg
-                    px-3 py-2
-                    disabled:bg-gray-100
-                    "
+
+                    className="border rounded px-3 py-2"
                 >
-                    <option value="user">
-                        User
+                    <option value="owner">
+                        Owner
                     </option>
-
-
-                    <option value="developer">
-                        Developer
-                    </option>
-                    <option value="admin">
+                    <option value="org_admin">
                         Admin
                     </option>
-
+                    <option value="team_lead">
+                        Team Lead
+                    </option>
+                    <option value="member">
+                        Member
+                    </option>
+                    <option value="viewer">
+                        Viewer
+                    </option>
                 </select>
 
             </td>
             <td className="p-4">
                 {
-                    isAdmin && (
-                        <button
-                            onClick={() =>
-                                updateUser(
-                                    user._id,
-                                    role,
-                                    department
-                                )
-                            }
-                            className="
-                            bg-blue-600 
-                            hover:bg-blue-700 
-                            text-white 
-                            px-4 py-2 
-                            rounded-lg
-                            "
-                        >
-                            Save
 
-                        </button>
-                    )
+                    canEdit &&
+                    <button
+                        onClick={() =>
+                            updateMember(
+                                member._id,
+                                role,
+                                designation
+                            )
+
+                        }
+                        className="bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                        Save
+                    </button>
                 }
-
             </td>
         </tr>
-    );
-
+    )
 }
