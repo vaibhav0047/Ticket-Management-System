@@ -168,9 +168,13 @@ export default function Users() {
                                 <th className="p-4 text-left">
                                     Role
                                 </th>
-                                <th className="p-4 text-left">
-                                    Action
-                                </th>
+                                {
+                                    canEdit && (
+                                        <th className="p-4 text-left">
+                                            Action
+                                        </th>
+                                    )
+                                }
                             </tr>
                         </thead>
                         <tbody>
@@ -224,90 +228,128 @@ function MemberRow({
                 }
             </td>
             <td className="p-4">
-                <select
 
-                    disabled={!canEdit}
+                {
+                    canEdit ? (
 
-                    value={designation}
+                        <select
+                            value={designation}
+                            onChange={
+                                e => setDesignation(e.target.value)
+                            }
+                            className="border rounded px-3 py-2"
+                        >
 
-                    onChange={
-                        e => setDesignation(e.target.value)
-                    }
+                            <option value="">
+                                Select Designation
+                            </option>
 
-                    className="border rounded px-3 py-2"
+                            {
+                                availableDesignations.map(
+                                    (title: string) => (
+                                        <option
+                                            key={title}
+                                            value={title}
+                                        >
+                                            {title}
+                                        </option>
+                                    )
+                                )
 
-                >
+                            }
 
+                        </select>
 
-                    <option value="">
-                        Select Designation
-                    </option>
+                    )
 
+                        :
 
-                    {
-                        availableDesignations.map(
-                            (title: string) => (
-                                <option
-                                    key={title}
-                                    value={title}
-                                >
-                                    {title}
-                                </option>
-                            )
+                        (
+
+                            <span className="text-gray-700">
+                                {
+                                    member.designation ||
+                                    "Not Assigned"
+                                }
+                            </span>
+
                         )
 
-                    }
-
-
-                </select>
-            </td>
-            <td className="p-4">
-                <select
-                    disabled={!canEdit}
-                    value={role}
-                    onChange={
-                        e => setRole(e.target.value)
-                    }
-
-                    className="border rounded px-3 py-2"
-                >
-                    <option value="owner">
-                        Owner
-                    </option>
-                    <option value="org_admin">
-                        Admin
-                    </option>
-                    <option value="team_lead">
-                        Team Lead
-                    </option>
-                    <option value="member">
-                        Member
-                    </option>
-                    <option value="viewer">
-                        Viewer
-                    </option>
-                </select>
-
-            </td>
-            <td className="p-4">
-                {
-
-                    canEdit &&
-                    <button
-                        onClick={() =>
-                            updateMember(
-                                member._id,
-                                role,
-                                designation
-                            )
-
-                        }
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Save
-                    </button>
                 }
+
             </td>
+            <td className="p-4">
+
+                {
+                    canEdit ? (
+
+                        <select
+                            value={role}
+                            onChange={
+                                e => setRole(e.target.value)
+                            }
+                            className="border rounded px-3 py-2"
+                        >
+
+                            <option value="owner">
+                                Owner
+                            </option>
+
+                            <option value="org_admin">
+                                Admin
+                            </option>
+
+                            <option value="team_lead">
+                                Team Lead
+                            </option>
+
+                            <option value="member">
+                                Member
+                            </option>
+
+                            <option value="viewer">
+                                Viewer
+                            </option>
+
+                        </select>
+
+                    )
+
+                        :
+
+                        (
+
+                            <span className="capitalize text-gray-700">
+                                {member.role}
+                            </span>
+
+                        )
+
+                }
+
+            </td>
+            {
+                canEdit && (
+
+                    <td className="p-4">
+
+                        <button
+                            onClick={() =>
+                                updateMember(
+                                    member._id,
+                                    role,
+                                    designation
+                                )
+                            }
+                            className="bg-blue-600 text-white px-4 py-2 rounded"
+                        >
+                            Save
+                        </button>
+
+                    </td>
+
+                )
+            }
         </tr>
     )
 }
