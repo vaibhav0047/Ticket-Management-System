@@ -38,31 +38,71 @@ export default function AcceptInvite() {
 
 
     const handleAccept = async () => {
+
         const tokenValue = localStorage.getItem("token");
 
+
         if (!tokenValue) {
-            localStorage.setItem("inviteToken", token || "");
+
+            localStorage.setItem(
+                "inviteToken",
+                token || ""
+            );
+
+
+            localStorage.setItem(
+                "inviteDepartment",
+                selectedDepartment
+            );
+
+
             window.location.href = "/login";
+
             return;
         }
 
+
         setAccepting(true);
+
+
         try {
+            console.log({
+                token,
+                selectedDepartment,
+                tokenValue
+            });
+
             await axios.post(
                 `/api/invitations/accept/${token}`,
                 {
                     departmentId: selectedDepartment
                 },
-                { headers: { Authorization: `Bearer ${tokenValue}` } }
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${tokenValue}`
+                    }
+                }
             );
+
+
             window.location.href = "/dashboard";
+
+
         } catch (err: any) {
+
             console.error(err);
+
             alert(
-                err?.response?.data?.message || "Failed to accept invitation"
+                err.response?.data?.message ||
+                "Failed to accept invitation"
             );
+
+
         } finally {
+
             setAccepting(false);
+
         }
     };
 

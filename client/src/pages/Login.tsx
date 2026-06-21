@@ -55,24 +55,39 @@ export default function Login() {
 
             const inviteToken =
                 localStorage.getItem("inviteToken");
+
+
+            const inviteDepartment =
+                localStorage.getItem("inviteDepartment");
+
+
             if (inviteToken) {
+
                 await axios.post(
                     `http://localhost:5000/api/invitations/accept/${inviteToken}`,
-                    {},
+                    {
+                        departmentId:
+                            inviteDepartment
+                    },
                     {
                         headers: {
                             Authorization:
                                 `Bearer ${newToken}`
                         }
                     }
-                )
-                // remove after joining
+                );
+
 
                 localStorage.removeItem(
                     "inviteToken"
                 );
-            }
 
+
+                localStorage.removeItem(
+                    "inviteDepartment"
+                );
+
+            }
             // finally go dashboard
             navigate("/dashboard");
 

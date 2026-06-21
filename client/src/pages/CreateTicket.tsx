@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
     AlertCircle,
     ChevronLeft,
-    Info,
+
     Layout,
     Send,
     ShieldAlert,
