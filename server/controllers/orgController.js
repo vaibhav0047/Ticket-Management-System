@@ -31,17 +31,15 @@ const createOrganization = async (req, res) => {
         });
 
         // Create Creator Membership
-
         await Membership.create({
 
-            userId: req.user._id,
+            userId: req.user.id,
 
-            orgId: invitation.orgId,
+            orgId: org._id,
 
-            role: invitation.role || "member",
+            role: "owner",
 
-            departmentId:
-                req.body.departmentId || invitation.departmentId || null
+            departmentId: null
 
         });
 
@@ -353,38 +351,57 @@ const joinOrganization = async (req, res) => {
 
 
         if (!organization) {
+
             return res.status(400).json({
                 message: "Invalid or expired invite link"
             });
+
         }
 
 
-        const invitation = await Invitation.findOne({
-            orgId: organization._id,
-            email: req.user.email,
-            status: "pending"
-        });
+        const invitation =
+            await Invitation.findOne({
+
+                orgId: organization._id,
+
+                email: req.user.email,
+
+                status: "pending"
+
+            });
 
 
         if (!invitation) {
+
             return res.status(400).json({
-                message: "Invitation not found"
+
+                message:
+                    "Invitation not found"
+
             });
+
         }
 
 
 
         const existingMember =
             await Membership.findOne({
+
                 orgId: organization._id,
+
                 userId: req.user._id
+
             });
+
 
 
         if (existingMember) {
 
             return res.status(400).json({
-                message: "Already a member"
+
+                message:
+                    "Already a member"
+
             });
 
         }
@@ -395,12 +412,15 @@ const joinOrganization = async (req, res) => {
 
             userId: req.user._id,
 
-            orgId: invitation.orgId,
+            orgId: organization._id,
 
-            role: invitation.role || "member",
+            role:
+                invitation.role || "member",
 
             departmentId:
-                req.body.departmentId || invitation.departmentId || null
+                req.body.departmentId ||
+                invitation.departmentId ||
+                null
 
         });
 
@@ -414,9 +434,11 @@ const joinOrganization = async (req, res) => {
 
         res.json({
 
-            message: "Joined organization successfully",
+            message:
+                "Joined organization successfully",
 
-            organizationId: organization._id
+            organizationId:
+                organization._id
 
         });
 
@@ -426,13 +448,16 @@ const joinOrganization = async (req, res) => {
 
         console.error(error);
 
+
         res.status(500).json({
+
             message: error.message
+
         });
 
     }
 
-}
+};
 module.exports = {
     createOrganization,
     getMyOrganizations,

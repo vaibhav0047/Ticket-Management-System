@@ -61,7 +61,7 @@ router.get(
     getOrganizationMembers
 );
 router.post(
-    "/join/:token",
+    "/accept/:token",
     protect,
     joinOrganization
 );
