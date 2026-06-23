@@ -1,4 +1,7 @@
+
+
 const express = require("express");
+
 const router = express.Router();
 
 const {
@@ -8,8 +11,11 @@ const {
     getMyOrganizations,
     getOrganizationMembers,
     createInvite,
-    joinOrganization
+    joinOrganization,
+    updateMember,
+    removeMember
 } = require("../controllers/orgController");
+
 
 
 const {
@@ -23,7 +29,16 @@ router.post(
     protect,
     createOrganization
 );
-
+// Update member role/designation
+router.put(
+    "/members/:id",
+    protect,
+    updateMember
+);
+router.put("/members/:id", protect, (req, res) => {
+    console.log("UPDATE ROUTE HIT");
+    res.json({ success: true });
+});
 
 // Get logged in user's organizations
 router.get(
@@ -38,6 +53,12 @@ router.delete(
     "/:id",
     protect,
     deleteOrganization
+);
+
+router.delete(
+    "/members/:id",
+    protect,
+    removeMember
 );
 
 router.post(

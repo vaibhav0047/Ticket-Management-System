@@ -36,6 +36,10 @@ const membershipSchema = new mongoose.Schema(
             ],
 
             default: "member"
+        },
+        designation: {
+            type: String,
+            default: ""
         }
 
     },

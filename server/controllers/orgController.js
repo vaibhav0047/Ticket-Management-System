@@ -227,7 +227,6 @@ const getOrganizationMembers = async (req, res) => {
                 select: "name"
             });
 
-
         const formattedMembers = members.map((member) => ({
             _id: member._id,
 
@@ -235,7 +234,9 @@ const getOrganizationMembers = async (req, res) => {
 
             department: member.departmentId,
 
-            role: member.role
+            role: member.role,
+
+            designation: member.designation
         }));
 
 
@@ -458,6 +459,81 @@ const joinOrganization = async (req, res) => {
     }
 
 };
+
+const updateMember = async (req, res) => {
+    try {
+
+        const {
+            role,
+            designation
+        } = req.body;
+
+
+        const member =
+            await Membership.findByIdAndUpdate(
+                req.params.id,
+                {
+                    role,
+                    designation
+                },
+                { new: true }
+            );
+
+
+        if (!member) {
+            return res.status(404).json({
+                message: "Member not found"
+            });
+        }
+
+
+        res.json({
+            message: "Member updated successfully",
+            member
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+
+};
+const removeMember = async (req, res) => {
+    try {
+
+        const member = await Membership.findById(req.params.id);
+
+        if (!member) {
+            return res.status(404).json({
+                message: "Member not found"
+            });
+        }
+
+
+        await Membership.findByIdAndDelete(req.params.id);
+
+
+        res.json({
+            message: "User removed successfully"
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+};
 module.exports = {
     createOrganization,
     getMyOrganizations,
@@ -465,5 +541,7 @@ module.exports = {
     getOrganizationMembers,
     deleteOrganization,
     createInvite,
-    joinOrganization
+    joinOrganization,
+    updateMember,
+    removeMember
 };
