@@ -157,7 +157,6 @@ exports.updateTicket = async (req, res) => {
         await ticket.save();
         res.json({
             message: "Ticket updated successfully",
-
             ticket
 
         });

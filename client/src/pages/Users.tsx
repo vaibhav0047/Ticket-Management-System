@@ -3,7 +3,7 @@ import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Topbar from "../components/Topbar";
 import { useOrg } from "../context/OrgContext";
-import { Search, Shield, Briefcase, Mail, Save, MoreHorizontal, UserPlus } from "lucide-react";
+import { Search, Shield, Save, MoreHorizontal, UserPlus } from "lucide-react";
 
 interface Member {
     _id: string;
@@ -34,6 +34,8 @@ export default function Users() {
     const { activeOrg } = useOrg();
     const [searchTerm, setSearchTerm] = useState("");
 
+
+
     const myMembership = members.find((m) => m.user._id === currentUser.id);
     const canEdit = ["owner", "org_admin"].includes(myMembership?.role || "");
 
@@ -49,12 +51,29 @@ export default function Users() {
         }
     };
 
-    const updateMember = async (id: string, role: string, designation: string) => {
+    const updateMember = async (
+        id: string,
+        role: string,
+        designation: string
+    ) => {
         try {
             const token = localStorage.getItem("token");
-            await api.put(`/users/${id}`, { role, designation }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+
+            const res = await api.put(
+                `/orgs/members/${id}`,
+                {
+                    role,
+                    designation
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            console.log(res.data);
+
             fetchMembers();
         } catch (err) {
             console.error(err);
@@ -64,6 +83,33 @@ export default function Users() {
     useEffect(() => {
         if (activeOrg?._id) fetchMembers();
     }, [activeOrg]);
+    const removeMember = async (id: string) => {
+
+        try {
+
+            const token = localStorage.getItem("token");
+
+
+            await api.delete(
+                `/orgs/members/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+
+            fetchMembers();
+
+
+        } catch (err) {
+
+            console.error(err);
+
+        }
+
+    };
 
     const filteredMembers = members.filter(m =>
         m.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -126,6 +172,7 @@ export default function Users() {
                                     member={member}
                                     canEdit={canEdit}
                                     updateMember={updateMember}
+                                    removeMember={removeMember}
                                 />
                             ))}
                         </tbody>
@@ -136,10 +183,12 @@ export default function Users() {
     );
 }
 
-function MemberRow({ member, canEdit, updateMember }: { member: Member; canEdit: boolean; updateMember: (id: string, role: string, designation: string) => void }) {
+function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Member; canEdit: boolean; updateMember: (id: string, role: string, designation: string) => void; removeMember: (id: string) => void }) {
     const [role, setRole] = useState(member.role);
     const [designation, setDesignation] = useState(member.designation || "");
     const availableDesignations = designationMap[member.department?.name || ""] || [];
+    const [showMenu, setShowMenu] = useState(false);
+
 
     const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
@@ -200,14 +249,52 @@ function MemberRow({ member, canEdit, updateMember }: { member: Member; canEdit:
                 <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                         <button
-                            onClick={() => updateMember(member._id, role, designation)}
+                            onClick={() =>
+                                updateMember(
+                                    member._id,
+                                    role,
+                                    designation
+                                )
+                            }
                             className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors title='Save changes'"
                         >
                             <Save size={18} />
                         </button>
-                        <button className="p-2 text-gray-400 hover:bg-gray-100 rounded">
-                            <MoreHorizontal size={18} />
-                        </button>
+                        <div className="relative">
+
+                            <button
+                                onClick={() => setShowMenu(!showMenu)}
+                                className="p-2 text-gray-400 hover:bg-gray-100 rounded"
+                            >
+                                <MoreHorizontal size={18} />
+                            </button>
+
+
+                            {showMenu && (
+                                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+
+                                    <button
+                                        onClick={() => {
+                                            removeMember(member._id);
+                                            setShowMenu(false);
+                                        }}
+                                        className="
+                w-full
+                text-left
+                px-4
+                py-2
+                text-sm
+                text-red-600
+                hover:bg-red-50
+            "
+                                    >
+                                        Remove user
+                                    </button>
+
+                                </div>
+                            )}
+
+                        </div>
                     </div>
                 </td>
             )}
