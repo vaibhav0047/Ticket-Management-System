@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 type Org = {
     _id: string;
@@ -32,16 +32,7 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
             try {
 
-                const token = localStorage.getItem("token");
-
-                const res = await axios.get(
-                    "/api/orgs/my",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
+                const res = await api.get("/orgs/my");
 
                 const organizations = res.data;
 
