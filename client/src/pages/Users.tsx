@@ -3,7 +3,12 @@ import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Topbar from "../components/Topbar";
 import { useOrg } from "../context/OrgContext";
-import { Search, Shield, Save, MoreHorizontal, UserPlus } from "lucide-react";
+import { Search, Shield, Save, MoreHorizontal, UserPlus, CheckCircle2 } from "lucide-react";
+
+interface Department {
+    _id: string;
+    name: string;
+}
 
 interface Member {
     _id: string;
@@ -31,21 +36,27 @@ const designationMap: any = {
 export default function Users() {
     const [currentUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
     const [members, setMembers] = useState<Member[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
     const { activeOrg } = useOrg();
     const [searchTerm, setSearchTerm] = useState("");
-
-
+    const [successMsg, setSuccessMsg] = useState("");
 
     const myMembership = members.find((m) => m.user._id === currentUser.id);
     const canEdit = ["owner", "org_admin"].includes(myMembership?.role || "");
 
-    const fetchMembers = async () => {
+    const fetchMembersAndDepartments = async () => {
+        if (!activeOrg?._id) return;
         try {
             const token = localStorage.getItem("token");
-            const res = await api.get(`/orgs/${activeOrg?._id}/members`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setMembers(res.data.members || []);
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const [membersRes, deptsRes] = await Promise.all([
+                api.get(`/orgs/${activeOrg._id}/members`, { headers }),
+                api.get(`/departments/organization/${activeOrg._id}`, { headers })
+            ]);
+
+            setMembers(membersRes.data.members || []);
+            setDepartments(deptsRes.data || []);
         } catch (err) {
             console.error(err);
         }
@@ -54,62 +65,40 @@ export default function Users() {
     const updateMember = async (
         id: string,
         role: string,
-        designation: string
+        designation: string,
+        departmentId: string
     ) => {
         try {
             const token = localStorage.getItem("token");
-
-            const res = await api.put(
+            await api.put(
                 `/orgs/members/${id}`,
-                {
-                    role,
-                    designation
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+                { role, designation, departmentId },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log(res.data);
+            setSuccessMsg("Member updated successfully");
+            setTimeout(() => setSuccessMsg(""), 3000);
+            fetchMembersAndDepartments();
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-            fetchMembers();
+    const removeMember = async (id: string) => {
+        try {
+            const token = localStorage.getItem("token");
+            await api.delete(`/orgs/members/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchMembersAndDepartments();
         } catch (err) {
             console.error(err);
         }
     };
 
     useEffect(() => {
-        if (activeOrg?._id) fetchMembers();
+        if (activeOrg?._id) fetchMembersAndDepartments();
     }, [activeOrg]);
-    const removeMember = async (id: string) => {
-
-        try {
-
-            const token = localStorage.getItem("token");
-
-
-            await api.delete(
-                `/orgs/members/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-
-            fetchMembers();
-
-
-        } catch (err) {
-
-            console.error(err);
-
-        }
-
-    };
 
     const filteredMembers = members.filter(m =>
         m.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,7 +117,7 @@ export default function Users() {
                             <span>Organizations</span> / <span>{activeOrg?.name || 'Settings'}</span> / <span className="text-gray-900 font-medium">Users</span>
                         </nav>
                         <h1 className="text-2xl font-semibold tracking-tight text-[#172b4d]">
-                            Users
+                            Users & Department Roles
                         </h1>
                     </div>
                     <button className="bg-[#0052cc] hover:bg-[#0747a6] text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-medium transition-colors">
@@ -136,6 +125,13 @@ export default function Users() {
                         Invite users
                     </button>
                 </div>
+
+                {successMsg && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-xs font-medium flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-green-600" />
+                        {successMsg}
+                    </div>
+                )}
 
                 <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
                     {/* Controls Bar */}
@@ -170,6 +166,7 @@ export default function Users() {
                                 <MemberRow
                                     key={member._id}
                                     member={member}
+                                    departments={departments}
                                     canEdit={canEdit}
                                     updateMember={updateMember}
                                     removeMember={removeMember}
@@ -183,12 +180,20 @@ export default function Users() {
     );
 }
 
-function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Member; canEdit: boolean; updateMember: (id: string, role: string, designation: string) => void; removeMember: (id: string) => void }) {
+function MemberRow({ member, departments, canEdit, updateMember, removeMember }: {
+    member: Member;
+    departments: Department[];
+    canEdit: boolean;
+    updateMember: (id: string, role: string, designation: string, departmentId: string) => void;
+    removeMember: (id: string) => void
+}) {
     const [role, setRole] = useState(member.role);
     const [designation, setDesignation] = useState(member.designation || "");
-    const availableDesignations = designationMap[member.department?.name || ""] || [];
+    const [departmentId, setDepartmentId] = useState(member.department?._id || "");
     const [showMenu, setShowMenu] = useState(false);
 
+    const currentDeptObj = departments.find(d => d._id === departmentId);
+    const availableDesignations = designationMap[currentDeptObj?.name || member.department?.name || ""] || [];
 
     const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
@@ -205,17 +210,30 @@ function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Me
                     </div>
                 </div>
             </td>
-            <td className="px-6 py-4 text-gray-600">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                    {member.department?.name || "Unassigned"}
-                </span>
+            <td className="px-6 py-4">
+                {canEdit ? (
+                    <select
+                        value={departmentId}
+                        onChange={(e) => setDepartmentId(e.target.value)}
+                        className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    >
+                        <option value="">Unassigned</option>
+                        {departments.map((d) => (
+                            <option key={d._id} value={d._id}>{d.name}</option>
+                        ))}
+                    </select>
+                ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                        {member.department?.name || "Unassigned"}
+                    </span>
+                )}
             </td>
             <td className="px-6 py-4">
                 {canEdit ? (
                     <select
                         value={designation}
                         onChange={(e) => setDesignation(e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                     >
                         <option value="">Select Title</option>
                         {availableDesignations.map((title: string) => (
@@ -223,7 +241,7 @@ function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Me
                         ))}
                     </select>
                 ) : (
-                    <div className="text-gray-600 text-sm">{member.designation || "—"}</div>
+                    <div className="text-gray-600 text-xs">{member.designation || "—"}</div>
                 )}
             </td>
             <td className="px-6 py-4">
@@ -231,10 +249,11 @@ function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Me
                     <select
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-medium"
                     >
                         <option value="owner">Owner</option>
                         <option value="org_admin">Administrator</option>
+                        <option value="department_manager">Department Manager</option>
                         <option value="team_lead">Team Lead</option>
                         <option value="member">Member</option>
                         <option value="viewer">Viewer</option>
@@ -249,19 +268,13 @@ function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Me
                 <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                         <button
-                            onClick={() =>
-                                updateMember(
-                                    member._id,
-                                    role,
-                                    designation
-                                )
-                            }
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors title='Save changes'"
+                            onClick={() => updateMember(member._id, role, designation, departmentId)}
+                            className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                            title="Save changes"
                         >
                             <Save size={18} />
                         </button>
                         <div className="relative">
-
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
                                 className="p-2 text-gray-400 hover:bg-gray-100 rounded"
@@ -269,31 +282,19 @@ function MemberRow({ member, canEdit, updateMember, removeMember }: { member: Me
                                 <MoreHorizontal size={18} />
                             </button>
 
-
                             {showMenu && (
                                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-
                                     <button
                                         onClick={() => {
                                             removeMember(member._id);
                                             setShowMenu(false);
                                         }}
-                                        className="
-                w-full
-                text-left
-                px-4
-                py-2
-                text-sm
-                text-red-600
-                hover:bg-red-50
-            "
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
                                         Remove user
                                     </button>
-
                                 </div>
                             )}
-
                         </div>
                     </div>
                 </td>

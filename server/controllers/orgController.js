@@ -220,7 +220,7 @@ const getOrganizationMembers = async (req, res) => {
         })
             .populate({
                 path: "userId",
-                select: "name email"
+                select: "name email avatar phone"
             })
             .populate({
                 path: "departmentId",
@@ -462,23 +462,22 @@ const joinOrganization = async (req, res) => {
 
 const updateMember = async (req, res) => {
     try {
-
         const {
             role,
-            designation
+            designation,
+            departmentId
         } = req.body;
 
+        const updateFields = {};
+        if (role !== undefined) updateFields.role = role;
+        if (designation !== undefined) updateFields.designation = designation;
+        if (departmentId !== undefined) updateFields.departmentId = departmentId || null;
 
-        const member =
-            await Membership.findByIdAndUpdate(
-                req.params.id,
-                {
-                    role,
-                    designation
-                },
-                { new: true }
-            );
-
+        const member = await Membership.findByIdAndUpdate(
+            req.params.id,
+            updateFields,
+            { new: true }
+        ).populate("departmentId", "name");
 
         if (!member) {
             return res.status(404).json({
@@ -486,23 +485,17 @@ const updateMember = async (req, res) => {
             });
         }
 
-
         res.json({
             message: "Member updated successfully",
             member
         });
 
-
     } catch (error) {
-
         console.error(error);
-
         res.status(500).json({
             message: error.message
         });
-
     }
-
 };
 const removeMember = async (req, res) => {
     try {

@@ -59,6 +59,7 @@ export default function ViewOrganization() {
         if (!confirmDelete) return;
 
         try {
+            if (!activeOrg?._id) return;
             const token = localStorage.getItem("token");
             await api.delete(`/orgs/${activeOrg._id}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -75,6 +76,7 @@ export default function ViewOrganization() {
 
     const generateInvite = async () => {
         try {
+            if (!activeOrg?._id) return;
             const token = localStorage.getItem("token");
             const res = await api.post(
                 `/orgs/${activeOrg._id}/invite`,

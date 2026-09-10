@@ -47,14 +47,20 @@ exports.register = async (req, res) => {
             otpExpiry: Date.now() + 5 * 60 * 1000
         });
 
+        console.log(`🔑 [OTP AUTOMATION] Registration OTP generated for ${email}: ${otp}`);
+
         await sendEmail(
             email,
-            "Email Verification OTP",
+            "[TMS] Account Verification OTP",
             `
-            <h2>Ticket Management System</h2>
-            <p>Your OTP is:</p>
-            <h1>${otp}</h1>
-            <p>Expires in 5 minutes.</p>
+            <div style="font-family: Arial, sans-serif; max-width:550px; margin:auto; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                <h2 style="color:#0052cc; margin-top:0;">Ticket Management System (TMS)</h2>
+                <p style="font-size:14px; color:#4a5568;">Your account verification OTP code is:</p>
+                <div style="background-color:#ebf8ff; color:#2b6cb0; border:1px border-blue-200; font-size:28px; font-weight:bold; letter-spacing:4px; text-align:center; padding:15px; border-radius:6px; margin:15px 0;">
+                    ${otp}
+                </div>
+                <p style="font-size:12px; color:#718096;">This code is valid for 5 minutes. Do not share this code with anyone.</p>
+            </div>
             `
         );
 
@@ -228,13 +234,20 @@ exports.forgotPassword = async (req, res) => {
         user.resetOtpExpiry = Date.now() + 10 * 60 * 1000;
         await user.save();
 
+        console.log(`🔑 [OTP AUTOMATION] Password Reset OTP generated for ${email}: ${otp}`);
+
         await sendEmail(
             email,
-            "Password Reset OTP",
+            "[TMS] Password Reset OTP",
             `
-            <h2>Password Reset</h2>
-            <h1>${otp}</h1>
-            <p>Valid for 10 minutes</p>
+            <div style="font-family: Arial, sans-serif; max-width:550px; margin:auto; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                <h2 style="color:#0052cc; margin-top:0;">Ticket Management System (TMS)</h2>
+                <p style="font-size:14px; color:#4a5568;">Your password reset OTP code is:</p>
+                <div style="background-color:#fff5f5; color:#c53030; border:1px border-red-200; font-size:28px; font-weight:bold; letter-spacing:4px; text-align:center; padding:15px; border-radius:6px; margin:15px 0;">
+                    ${otp}
+                </div>
+                <p style="font-size:12px; color:#718096;">This code is valid for 10 minutes. If you did not request a password reset, please ignore this email.</p>
+            </div>
             `
         );
 

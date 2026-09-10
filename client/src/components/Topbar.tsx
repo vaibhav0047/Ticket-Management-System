@@ -9,7 +9,7 @@ export default function Topbar() {
     const [showMenu, setShowMenu] = useState(false);
 
     const { orgs } = useOrg();
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -54,27 +54,37 @@ export default function Topbar() {
                         onClick={() => setShowMenu(!showMenu)}
                     >
                         <img
-                            src="https://i.pravatar.cc/40"
+                            src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'User'}`}
                             alt="Profile"
-                            className="rounded-full w-10 h-10"
+                            className="rounded-full w-10 h-10 border border-slate-200 object-cover"
                         />
 
                         <div>
-                            <p className="font-semibold">
+                            <p className="font-semibold text-sm">
                                 {user?.name || "User"}
                             </p>
 
                             <p className="text-xs text-gray-500 capitalize">
-                                {user?.role || "User"}
+                                {user?.email || "Account"}
                             </p>
                         </div>
                     </div>
 
                     {showMenu && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-50">
+                        <div className="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border z-50 overflow-hidden divide-y divide-gray-100">
+                            <button
+                                onClick={() => {
+                                    setShowMenu(false);
+                                    navigate("/profile");
+                                }}
+                                className="w-full text-left px-4 py-2.5 hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-2"
+                            >
+                                My Profile
+                            </button>
+
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-500"
+                                className="w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm font-medium text-red-600 flex items-center gap-2"
                             >
                                 Logout
                             </button>

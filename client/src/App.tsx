@@ -1,12 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
+import DepartmentView from "./pages/DepartmentView";
+import Integrations from "./pages/Integrations";
 import CreateTicket from "./pages/CreateTicket";
 import TicketDetails from "./pages/TicketDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Users from "./pages/Users";
+import Profile from "./pages/Profile";
 import VerifyOtp from "./pages/VerifyOtp";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyResetOtp from "./pages/VerifyResetOtp";
@@ -48,6 +51,24 @@ function App() {
             }
           />
 
+          <Route
+            path="/departments"
+            element={
+              <ProtectedRoute>
+                <DepartmentView />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/integrations"
+            element={
+              <ProtectedRoute>
+                <Integrations />
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route
             path="/create-ticket"
@@ -64,6 +85,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Users />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

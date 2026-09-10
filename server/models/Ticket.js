@@ -30,8 +30,14 @@ const ticketSchema = new mongoose.Schema(
         },
 
         department: {
-            type: String,
-            enum: ["IT", "HR", "Finance", "Support"],
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+            required: true,
+        },
+
+        orgId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Organization",
             required: true,
         },
 

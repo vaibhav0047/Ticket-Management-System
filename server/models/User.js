@@ -18,6 +18,20 @@ const userSchema = new mongoose.Schema({
         required: true
     },
 
+    phone: {
+        type: String,
+        default: ""
+    },
+
+    avatar: {
+        type: String,
+        default: ""
+    },
+
+    bio: {
+        type: String,
+        default: ""
+    },
 
     resetOtp: {
         type: String

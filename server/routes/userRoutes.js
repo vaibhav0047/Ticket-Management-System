@@ -4,8 +4,13 @@ const { protect } = require("../middleware/authMiddleware");
 
 const {
     getUsers,
-    updateUserRole
+    updateUserRole,
+    getProfile,
+    updateProfile
 } = require("../controllers/userController");
+
+router.get("/profile", protect, getProfile);
+router.put("/profile", protect, updateProfile);
 
 router.get("/", protect, getUsers);
 router.put("/:id", protect, updateUserRole);

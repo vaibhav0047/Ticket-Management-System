@@ -1,77 +1,112 @@
 import {
-    FaHome,
-    FaTicketAlt,
-    FaPlusCircle,
-    FaUsers,
-    FaChartBar,
-    FaCog
-} from "react-icons/fa";
-import { Link, useLocation } from "react-router-dom";
+    LayoutDashboard,
+    PlusCircle,
+    Users,
+    Building,
+    Shield,
+    User,
+    FolderKanban,
+    Zap
+} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function Navbar() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const [user] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
 
     const navItems = [
         {
-            name: "Dashboard",
-            icon: <FaHome />,
+            name: "TMS Portals",
+            icon: <LayoutDashboard size={18} />,
             path: "/dashboard"
         },
         {
-            name: "Tickets",
-            icon: <FaTicketAlt />,
-            path: "/tickets"
+            name: "Department Views",
+            icon: <FolderKanban size={18} />,
+            path: "/departments"
+        },
+        {
+            name: "App Integrations",
+            icon: <Zap size={18} />,
+            path: "/integrations"
         },
         {
             name: "Create Ticket",
-            icon: <FaPlusCircle />,
+            icon: <PlusCircle size={18} />,
             path: "/create-ticket"
         },
         {
-            name: "Users",
-            icon: <FaUsers />,
+            name: "My Profile",
+            icon: <User size={18} />,
+            path: "/profile"
+        },
+        {
+            name: "Team & Users",
+            icon: <Users size={18} />,
             path: "/users"
         },
         {
-            name: "Reports",
-            icon: <FaChartBar />,
-            path: "/reports"
-        },
-        {
-            name: "Settings",
-            icon: <FaCog />,
-            path: "/settings"
+            name: "Organization Details",
+            icon: <Building size={18} />,
+            path: "/organization/view"
         }
     ];
 
     return (
-        <div className="w-64 h-screen bg-slate-950 text-white fixed">
-            <div className="p-6 text-2xl font-bold border-b border-slate-800">
-                Ticket System
-            </div>
+        <div className="w-64 h-screen bg-[#071325] text-slate-200 fixed left-0 top-0 z-40 flex flex-col justify-between border-r border-slate-800">
+            <div>
+                {/* Branding */}
+                <div className="p-6 border-b border-slate-800/80 flex items-center gap-3">
+                    <div className="h-8 w-8 bg-blue-600 text-white rounded flex items-center justify-center font-black text-sm tracking-wider shadow">
+                        TMS
+                    </div>
+                    <div>
+                        <h2 className="font-bold text-sm text-white tracking-tight">Ticket Portal</h2>
+                        <p className="text-[10px] text-slate-400 font-medium">Enterprise Management</p>
+                    </div>
+                </div>
 
-            <div className="p-4 flex flex-col gap-3">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.name}
-                        to={item.path}
-                        className={`p-3 rounded-lg flex items-center gap-3 transition ${location.pathname === item.path
-                                ? "bg-blue-600"
-                                : "hover:bg-slate-800"
+                {/* Nav Links */}
+                <div className="p-4 space-y-1.5">
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.name}
+                            to={item.path}
+                            className={`p-3 rounded-md flex items-center gap-3 font-medium text-xs transition-all ${
+                                location.pathname === item.path
+                                    ? "bg-blue-600 text-white font-semibold shadow"
+                                    : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
                             }`}
-                    >
-                        {item.icon}
-                        {item.name}
-                    </Link>
-                ))}
+                        >
+                            {item.icon}
+                            {item.name}
+                        </Link>
+                    ))}
+                </div>
             </div>
 
-            <div className="absolute bottom-6 left-4 right-4">
-                <div className="bg-slate-800 p-4 rounded-lg">
-                    <p className="font-semibold">Admin User</p>
-                    <p className="text-sm text-slate-400">
-                        admin@tickets.com
-                    </p>
+            {/* Current User Badge */}
+            <div className="p-4 border-t border-slate-800/80">
+                <div
+                    onClick={() => navigate("/profile")}
+                    className="bg-slate-900/80 p-3 rounded-md border border-slate-800/60 flex items-center gap-3 cursor-pointer hover:bg-slate-800/80 transition-colors"
+                >
+                    {user.avatar ? (
+                        <img src={user.avatar} alt="Avatar" className="h-8 w-8 rounded-full border border-blue-600 object-cover" />
+                    ) : (
+                        <div className="h-8 w-8 bg-blue-950 text-blue-300 rounded-full flex items-center justify-center font-bold text-xs border border-blue-800">
+                            {user.name ? user.name.slice(0, 2).toUpperCase() : "US"}
+                        </div>
+                    )}
+                    <div className="overflow-hidden">
+                        <p className="font-semibold text-xs text-white truncate">{user.name || "User"}</p>
+                        <p className="text-[10px] text-slate-400 truncate flex items-center gap-1">
+                            <Shield size={10} className="text-blue-400" />
+                            {user.email || "Active User"}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
