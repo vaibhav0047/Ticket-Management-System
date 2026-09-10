@@ -7,9 +7,12 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// Middleware setup
+// CORS setup - dynamically reflect request origin to support credentials across local and production domains
 app.use(cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: (origin, callback) => {
+        // Always reflect requesting origin or allow non-browser requests
+        callback(null, true);
+    },
     credentials: true
 }));
 app.use(express.json({ limit: "10mb" }));
