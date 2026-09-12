@@ -56,6 +56,25 @@ app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", message: "TMS Backend API is healthy", timestamp: new Date() });
 });
 
+app.get("/api/test-email", async (req, res) => {
+    try {
+        const targetEmail = req.query.to || process.env.EMAIL_USER;
+        const sendEmail = require("./utils/sendEmail");
+        const info = await sendEmail(
+            targetEmail,
+            "[TMS Diagnostic] Email Automation Test",
+            `<h3>Email Automation Test 🚀</h3><p>If you are reading this email, your TMS email automation on Render is configured and working 100%!</p>`
+        );
+        if (info) {
+            res.json({ success: true, message: `Email successfully delivered to ${targetEmail}`, messageId: info.messageId });
+        } else {
+            res.status(500).json({ success: false, message: "Email delivery failed. Check EMAIL_USER and EMAIL_PASS environment variables in Render Dashboard." });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // SPA fallback for non-API routes in production (Express 5 compatible)
 app.use((req, res) => {
     if (req.method === "GET" && !req.path.startsWith("/api")) {

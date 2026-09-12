@@ -1,29 +1,36 @@
 const nodemailer = require("nodemailer");
 
 const sendEmail = async (to, subject, html) => {
+    console.log(`📧 Attempting to send email to: ${to} | Subject: "${subject}"`);
     try {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            console.warn("⚠️ Warning: EMAIL_USER or EMAIL_PASS not set in .env");
+        const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : "";
+        // Automatically strip spaces from Gmail App Passwords (e.g. "drxe cnze yhkj dtlg" -> "drxecnzeyhkjdtlg")
+        const pass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, "").trim() : "";
+
+        if (!user || !pass) {
+            console.warn("⚠️ Warning: EMAIL_USER or EMAIL_PASS not configured in environment variables");
             return;
         }
 
+        // Use direct SMTP on Port 465 (SSL) for cloud hosting compatibility (Render / Railway / AWS)
         const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: { user, pass }
         });
 
-        await transporter.sendMail({
-            from: `TMS Portal <${process.env.EMAIL_USER}>`,
+        const info = await transporter.sendMail({
+            from: `TMS Portal <${user}>`,
             to,
             subject,
             html
         });
-        console.log(`✅ Email sent successfully to ${to}`);
+
+        console.log(`✅ Email delivered successfully to ${to} (Message ID: ${info.messageId})`);
+        return info;
     } catch (err) {
-        console.error(`❌ Failed to send email to ${to}:`, err.message);
+        console.error(`❌ Email delivery failure to ${to}:`, err.message);
     }
 };
 
