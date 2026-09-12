@@ -16,6 +16,7 @@ const sendPost = async (url, data) => {
     }
 };
 
+const getClientUrl = require("./getClientUrl");
 const Integration = require("../models/Integration");
 
 /**
@@ -37,7 +38,7 @@ const dispatchWebhooks = async (orgId, eventType, ticket, eventTitle = "") => {
         const deptName = ticket.department?.name || ticket.department || "General";
         const reporterName = ticket.createdBy?.name || "User";
         const assigneeName = ticket.assignedTo?.name || "Unassigned Lead";
-        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        const clientUrl = getClientUrl();
 
         for (const integration of integrations) {
             const webhookUrl = integration.webhookUrl;

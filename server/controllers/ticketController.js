@@ -4,6 +4,7 @@ const ActivityLog = require("../models/ActivityLog");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 const dispatchWebhooks = require("../utils/dispatchWebhooks");
+const getClientUrl = require("../utils/getClientUrl");
 
 /**
  * HELPER: AUTOMATION TO NOTIFY ORG ADMINS/OWNERS ON TICKET EVENTS
@@ -26,7 +27,7 @@ const notifyOrgAdmins = async (orgId, subject, ticket, actionTitle) => {
         const creatorEmail = ticket.createdBy?.email || "N/A";
         const deptName = ticket.department?.name || ticket.department || "General";
         const assigneeName = ticket.assignedTo?.name || "Unassigned Lead";
-        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        const clientUrl = getClientUrl();
 
         const html = `
         <div style="font-family: Arial, sans-serif; max-width:650px; margin:auto; border:1px solid #e2e8f0; border-radius:10px; padding:25px; background-color:#ffffff;">
@@ -304,7 +305,7 @@ exports.createTicket = async (req, res) => {
                         <p><strong>Priority:</strong> ${priority || "Medium"}</p>
                         <p><strong>Description:</strong> ${description}</p>
                         <br/>
-                        <a href="${process.env.CLIENT_URL || "http://localhost:5173"}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
+                        <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
                     </div>`
                 ).catch((err) => console.error("Email send error:", err));
             }
@@ -554,7 +555,7 @@ exports.updateTicket = async (req, res) => {
                             <p><strong>Ticket:</strong> ${ticket.title}</p>
                             <p><strong>Status Changed:</strong> <span style="color:#e53e3e;">${prevStatus}</span> &rarr; <span style="color:#38a169; font-weight:bold;">${status}</span></p>
                             <br/>
-                            <a href="${process.env.CLIENT_URL || "http://localhost:5173"}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
+                            <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
                         </div>`
                     ).catch((err) => console.error("Email send error:", err));
                 }

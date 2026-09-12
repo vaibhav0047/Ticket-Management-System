@@ -6,6 +6,7 @@ const Invitation = require("../models/Invitation");
 
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+const getClientUrl = require("../utils/getClientUrl");
 
 
 const createOrganization = async (req, res) => {
@@ -80,7 +81,7 @@ const createOrganization = async (req, res) => {
             });
 
             const inviteLink =
-                `${process.env.CLIENT_URL}/invite/${token}`;
+                `${getClientUrl(req)}/invite/${token}`;
 
             await sendEmail(
                 member.email,
