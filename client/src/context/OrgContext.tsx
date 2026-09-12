@@ -30,6 +30,12 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
 
         const fetchOrgs = async () => {
 
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
 
                 const res = await api.get("/orgs/my");
@@ -41,9 +47,11 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
                 if (organizations.length)
                     setActiveOrg(organizations[0]);
 
-            } catch (err) {
+            } catch (err: any) {
 
-                console.error("Org fetch failed:", err);
+                if (err.response?.status !== 401) {
+                    console.error("Org fetch failed:", err);
+                }
 
             } finally {
 
