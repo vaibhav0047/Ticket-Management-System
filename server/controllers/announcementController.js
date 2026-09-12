@@ -1,5 +1,7 @@
 const Announcement = require("../models/Announcement");
 const Membership = require("../models/Membership");
+const sendEmail = require("../utils/sendEmail");
+const getClientUrl = require("../utils/getClientUrl");
 
 /**
  * GET ACTIVE ANNOUNCEMENTS FOR ORG
@@ -53,8 +55,35 @@ exports.createAnnouncement = async (req, res) => {
 
         const populated = await Announcement.findById(announcement._id).populate("author", "name email");
 
+        // Broadcast email alert to all active organization members
+        const allMemberships = await Membership.find({ orgId }).populate("userId", "name email");
+        const memberEmails = allMemberships.map((m) => m.userId?.email).filter(Boolean);
+
+        const clientUrl = getClientUrl(req);
+        const typeColor = type === "warning" ? "#d97706" : type === "critical" ? "#dc2626" : "#2563eb";
+        const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #e2e8f0; border-radius:10px; padding:24px; background-color:#ffffff;">
+            <div style="background-color:${typeColor}; color:#ffffff; padding:12px 18px; border-radius:8px; margin-bottom:18px;">
+                <h3 style="margin:0; font-size:18px;">📢 System Broadcast Announcement</h3>
+            </div>
+            <h2 style="color:#1e293b; margin-top:0; font-size:20px;">${title.trim()}</h2>
+            <p style="color:#475569; font-size:14px; line-height:1.6; white-space:pre-wrap;">${message.trim()}</p>
+            <p style="color:#64748b; font-size:12px; margin-top:16px;">Published by: <strong>${populated.author?.name || "Workspace Admin"}</strong></p>
+            <br/>
+            <div style="text-align:center;">
+                <a href="${clientUrl}/dashboard" style="display:inline-block; padding:10px 22px; background-color:${typeColor}; color:white; font-weight:bold; text-decoration:none; border-radius:6px; font-size:14px;">View in TMS Dashboard</a>
+            </div>
+        </div>
+        `;
+
+        for (const recipientEmail of memberEmails) {
+            sendEmail(recipientEmail, `[TMS Broadcast] ${title.trim()}`, emailHtml).catch((err) =>
+                console.error(`Broadcast email error for ${recipientEmail}:`, err)
+            );
+        }
+
         res.status(201).json({
-            message: "Announcement broadcasted successfully",
+            message: "Announcement broadcasted successfully and dispatched via email",
             announcement: populated
         });
     } catch (err) {
