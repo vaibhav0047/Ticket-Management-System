@@ -316,6 +316,24 @@ exports.createTicket = async (req, res) => {
             .populate("department", "name")
             .populate("assignedTo", "name email");
 
+        // Send confirmation email to Ticket Creator (Reporter)
+        if (populatedTicket.createdBy?.email) {
+            const ticketKey = `TKT-${ticket._id.toString().slice(-5).toUpperCase()}`;
+            sendEmail(
+                populatedTicket.createdBy.email,
+                `[TMS Confirmation] Ticket #${ticketKey} Created: ${title}`,
+                `<div style="font-family: sans-serif; max-width:600px; padding:20px; border:1px solid #e2e8f0; border-radius:8px;">
+                    <h3 style="color:#0052cc; margin-top:0;">Your Ticket Has Been Created Successfully 🎯</h3>
+                    <p><strong>Ticket Key:</strong> <span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-family:monospace; font-weight:bold;">${ticketKey}</span></p>
+                    <p><strong>Title:</strong> ${title}</p>
+                    <p><strong>Priority:</strong> ${priority || "Medium"}</p>
+                    <p><strong>Description:</strong> ${description || "No description provided."}</p>
+                    <br/>
+                    <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Your Ticket in TMS Command Center</a>
+                </div>`
+            ).catch((err) => console.error("Creator email send error:", err));
+        }
+
         // Automation: Notify Org Admins/Owners on ticket creation by any Lead or Member
         const creatorRoleStr = membership.role.replace('_', ' ');
         notifyOrgAdmins(
