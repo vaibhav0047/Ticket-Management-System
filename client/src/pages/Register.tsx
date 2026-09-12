@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import { Eye, EyeOff } from "lucide-react";
 import { FaApple } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
@@ -63,13 +63,10 @@ export default function Register() {
     try {
       setLoading(true);
 
-      await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          ...formData,
-          role: "user",
-        }
-      );
+      await api.post("/auth/register", {
+        ...formData,
+        role: "user",
+      });
 
       alert("OTP sent to your email");
 

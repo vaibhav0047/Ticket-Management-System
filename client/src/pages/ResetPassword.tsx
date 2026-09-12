@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import {
     useLocation,
     useNavigate
@@ -22,14 +22,11 @@ function ResetPassword() {
         }
 
         try {
-            await axios.post(
-                "http://localhost:5000/api/auth/reset-password",
-                {
-                    email,
-                    otp,
-                    newPassword: password
-                }
-            );
+            await api.post("/auth/reset-password", {
+                email,
+                otp,
+                newPassword: password
+            });
 
             alert("Password Reset Successfully");
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 
 function VerifyOtp() {
     const navigate = useNavigate();
@@ -19,13 +19,10 @@ function VerifyOtp() {
         try {
             setLoading(true);
 
-            const res = await axios.post(
-                "http://localhost:5000/api/auth/verify-otp",
-                {
-                    email,
-                    otp,
-                }
-            );
+            const res = await api.post("/auth/verify-otp", {
+                email,
+                otp,
+            });
 
             alert(res.data.message);
 

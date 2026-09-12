@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import {
     useLocation,
     useNavigate
@@ -15,13 +15,10 @@ function VerifyResetOtp() {
 
     const handleVerify = async () => {
         try {
-            await axios.post(
-                "http://localhost:5000/api/auth/verify-reset-otp",
-                {
-                    email,
-                    otp
-                }
-            );
+            await api.post("/auth/verify-reset-otp", {
+                email,
+                otp
+            });
 
             navigate("/reset-password", {
                 state: {

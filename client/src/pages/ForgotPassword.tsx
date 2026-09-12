@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Mail } from "lucide-react";
 
@@ -22,10 +22,7 @@ function ForgotPassword() {
             setLoading(true);
             setMessage("");
 
-            await axios.post(
-                "http://localhost:5000/api/auth/forgot-password",
-                { email }
-            );
+            await api.post("/auth/forgot-password", { email });
 
             setMessage("OTP sent to your email. Redirecting...");
 
