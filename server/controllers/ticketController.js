@@ -30,57 +30,54 @@ const notifyOrgAdmins = async (orgId, subject, ticket, actionTitle) => {
         const clientUrl = getClientUrl();
 
         const html = `
-        <div style="font-family: Arial, sans-serif; max-width:650px; margin:auto; border:1px solid #e2e8f0; border-radius:10px; padding:25px; background-color:#ffffff;">
-            <div style="background-color:#0052cc; color:#ffffff; padding:15px 20px; border-radius:8px; margin-bottom:20px;">
-                <h2 style="margin:0; font-size:20px;">⚡ TMS Admin Oversight Automation</h2>
-                <p style="margin:5px 0 0 0; font-size:13px; opacity:0.9;">${actionTitle}</p>
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background-color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%); color:#ffffff; padding:20px 25px;">
+                <div style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Admin Oversight Automation</div>
+                <h2 style="margin:0; font-size:20px; font-weight:700;">⚡ TMS Workspace Alert</h2>
+                <p style="margin:4px 0 0 0; font-size:13px; opacity:0.9;">${actionTitle}</p>
             </div>
             
-            <table style="width:100%; border-collapse:collapse; font-size:14px; color:#172b4d;">
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold; width:35%;">Ticket Key:</td>
-                    <td style="padding:8px 0;"><span style="background-color:#e2e8f0; padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:bold;">${ticketKey}</span></td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Title / Summary:</td>
-                    <td style="padding:8px 0; font-weight:bold; color:#0052cc;">${ticket.title}</td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Created By (Lead/User):</td>
-                    <td style="padding:8px 0;">${creatorName} (${creatorEmail})</td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Department:</td>
-                    <td style="padding:8px 0;">${deptName}</td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Priority Level:</td>
-                    <td style="padding:8px 0;"><span style="padding:2px 8px; border-radius:4px; font-weight:bold; ${ticket.priority === 'High' ? 'background-color:#fed7d7; color:#9b2c2c;' : 'background-color:#feebc8; color:#9c4221;'}">${ticket.priority || 'Medium'}</span></td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Status Progress:</td>
-                    <td style="padding:8px 0;"><span style="background-color:#ebf8ff; color:#2b6cb0; padding:2px 8px; border-radius:4px; font-weight:bold;">${ticket.status}</span></td>
-                </tr>
-                <tr>
-                    <td style="padding:8px 0; font-weight:bold;">Assigned Lead/Agent:</td>
-                    <td style="padding:8px 0;">${assigneeName}</td>
-                </tr>
-            </table>
+            <div style="padding:25px; color:#172b4d;">
+                <div style="margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #f1f5f9;">
+                    <span style="background-color:#e2e8f0; color:#334155; padding:3px 8px; border-radius:4px; font-family:monospace; font-weight:bold; font-size:12px;">${ticketKey}</span>
+                    <span style="float:right; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:bold; ${ticket.priority === 'High' ? 'background-color:#fee2e2; color:#991b1b;' : 'background-color:#fef3c7; color:#92400e;'}">${ticket.priority || 'Medium'} Priority</span>
+                    <h3 style="margin:10px 0 0 0; font-size:17px; font-weight:700; color:#0f172a;">${ticket.title}</h3>
+                </div>
 
-            <div style="margin-top:20px; padding:15px; background-color:#f7fafc; border-left:4px solid #0052cc; border-radius:4px;">
-                <strong style="display:block; margin-bottom:5px; font-size:13px; color:#4a5568;">Ticket Description:</strong>
-                <p style="margin:0; font-size:13px; color:#2d3748; white-space:pre-wrap;">${ticket.description || "No description provided."}</p>
-            </div>
+                <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155; margin-bottom:20px;">
+                    <tr>
+                        <td style="padding:6px 0; font-weight:bold; color:#64748b; width:40%;">Reporter:</td>
+                        <td style="padding:6px 0; font-weight:600;">${creatorName} (${creatorEmail})</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0; font-weight:bold; color:#64748b;">Department:</td>
+                        <td style="padding:6px 0; font-weight:600;">${deptName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0; font-weight:bold; color:#64748b;">Assigned Lead:</td>
+                        <td style="padding:6px 0; font-weight:600;">${assigneeName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0; font-weight:bold; color:#64748b;">Status:</td>
+                        <td style="padding:6px 0;"><span style="background-color:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:12px;">${ticket.status}</span></td>
+                    </tr>
+                </table>
 
-            <div style="margin-top:25px; text-align:center;">
-                <a href="${clientUrl}/ticket/${ticket._id}" style="display:inline-block; background-color:#0052cc; color:#ffffff; padding:12px 24px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:14px;">
-                    View Details in TMS Command Center
-                </a>
+                <div style="padding:14px; background-color:#f8fafc; border-left:4px solid #0052cc; border-radius:6px; margin-bottom:22px;">
+                    <strong style="display:block; margin-bottom:4px; font-size:11px; text-transform:uppercase; color:#64748b;">Description:</strong>
+                    <p style="margin:0; font-size:13px; color:#334155; line-height:1.5; white-space:pre-wrap;">${ticket.description || "No description provided."}</p>
+                </div>
+
+                <div style="text-align:center; margin-top:20px;">
+                    <a href="${clientUrl}/ticket/${ticket._id}" style="display:inline-block; background-color:#0052cc; color:#ffffff; padding:12px 26px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                        View Ticket in TMS Portal &rarr;
+                    </a>
+                </div>
             </div>
             
-            <p style="margin-top:30px; font-size:11px; color:#718096; text-align:center; border-top:1px solid #edf2f7; padding-top:15px;">
-                Automated Admin Notification dispatched by Ticket Management System (TMS).
-            </p>
+            <div style="background-color:#f8fafc; padding:14px 25px; text-align:center; border-top:1px solid #f1f5f9; font-size:11px; color:#94a3b8;">
+                Automated Admin Notification • Ticket Management System (TMS)
+            </div>
         </div>
         `;
 
@@ -293,19 +290,35 @@ exports.createTicket = async (req, res) => {
         });
 
         // Send email alert to assigned lead if available
+        const clientUrl = getClientUrl();
         if (assignedToUser) {
             const leadUser = await User.findById(assignedToUser);
             if (leadUser?.email) {
+                const ticketKey = `TKT-${ticket._id.toString().slice(-5).toUpperCase()}`;
                 sendEmail(
                     leadUser.email,
                     `[TMS Alert] New Ticket Assigned: ${title}`,
-                    `<div style="font-family: sans-serif; max-width:600px; padding:20px; border:1px solid #e2e8f0; border-radius:8px;">
-                        <h3 style="color:#0052cc; margin-top:0;">New Ticket Assigned to Your Queue 🚀</h3>
-                        <p><strong>Title:</strong> ${title}</p>
-                        <p><strong>Priority:</strong> ${priority || "Medium"}</p>
-                        <p><strong>Description:</strong> ${description}</p>
-                        <br/>
-                        <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
+                    `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background-color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                        <div style="background: linear-gradient(135deg, #0052cc 0%, #0747a6 100%); color:#ffffff; padding:20px 25px;">
+                            <div style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Assignment Notification</div>
+                            <h2 style="margin:0; font-size:20px; font-weight:700;">New Ticket Assigned to Your Queue 🚀</h2>
+                        </div>
+                        <div style="padding:25px; color:#172b4d;">
+                            <div style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #f1f5f9;">
+                                <span style="background-color:#e2e8f0; color:#334155; padding:3px 8px; border-radius:4px; font-family:monospace; font-weight:bold; font-size:12px;">${ticketKey}</span>
+                                <span style="float:right; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:bold; ${priority === 'High' ? 'background-color:#fee2e2; color:#991b1b;' : 'background-color:#fef3c7; color:#92400e;'}">${priority || 'Medium'} Priority</span>
+                                <h3 style="margin:10px 0 0 0; font-size:18px; font-weight:700; color:#0f172a;">${title}</h3>
+                            </div>
+                            <div style="padding:14px; background-color:#f8fafc; border-left:4px solid #0052cc; border-radius:6px; margin-bottom:22px;">
+                                <strong style="display:block; margin-bottom:4px; font-size:11px; text-transform:uppercase; color:#64748b;">Description:</strong>
+                                <p style="margin:0; font-size:13px; color:#334155; line-height:1.5; white-space:pre-wrap;">${description || "No description provided."}</p>
+                            </div>
+                            <div style="text-align:center; margin-top:20px;">
+                                <a href="${clientUrl}/ticket/${ticket._id}" style="display:inline-block; background-color:#0052cc; color:#ffffff; padding:12px 26px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:14px;">
+                                    View Ticket in TMS Portal &rarr;
+                                </a>
+                            </div>
+                        </div>
                     </div>`
                 ).catch((err) => console.error("Email send error:", err));
             }
@@ -322,14 +335,27 @@ exports.createTicket = async (req, res) => {
             sendEmail(
                 populatedTicket.createdBy.email,
                 `[TMS Confirmation] Ticket #${ticketKey} Created: ${title}`,
-                `<div style="font-family: sans-serif; max-width:600px; padding:20px; border:1px solid #e2e8f0; border-radius:8px;">
-                    <h3 style="color:#0052cc; margin-top:0;">Your Ticket Has Been Created Successfully 🎯</h3>
-                    <p><strong>Ticket Key:</strong> <span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-family:monospace; font-weight:bold;">${ticketKey}</span></p>
-                    <p><strong>Title:</strong> ${title}</p>
-                    <p><strong>Priority:</strong> ${priority || "Medium"}</p>
-                    <p><strong>Description:</strong> ${description || "No description provided."}</p>
-                    <br/>
-                    <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Your Ticket in TMS Command Center</a>
+                `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background-color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; padding:20px 25px;">
+                        <div style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Creation Confirmation</div>
+                        <h2 style="margin:0; font-size:20px; font-weight:700;">Your Ticket Has Been Opened 🎯</h2>
+                    </div>
+                    <div style="padding:25px; color:#172b4d;">
+                        <div style="margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #f1f5f9;">
+                            <span style="background-color:#e2e8f0; color:#334155; padding:3px 8px; border-radius:4px; font-family:monospace; font-weight:bold; font-size:12px;">${ticketKey}</span>
+                            <span style="float:right; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:bold; ${priority === 'High' ? 'background-color:#fee2e2; color:#991b1b;' : 'background-color:#fef3c7; color:#92400e;'}">${priority || 'Medium'} Priority</span>
+                            <h3 style="margin:10px 0 0 0; font-size:18px; font-weight:700; color:#0f172a;">${title}</h3>
+                        </div>
+                        <div style="padding:14px; background-color:#f8fafc; border-left:4px solid #10b981; border-radius:6px; margin-bottom:22px;">
+                            <strong style="display:block; margin-bottom:4px; font-size:11px; text-transform:uppercase; color:#64748b;">Description:</strong>
+                            <p style="margin:0; font-size:13px; color:#334155; line-height:1.5; white-space:pre-wrap;">${description || "No description provided."}</p>
+                        </div>
+                        <div style="text-align:center; margin-top:20px;">
+                            <a href="${clientUrl}/ticket/${ticket._id}" style="display:inline-block; background-color:#10b981; color:#ffffff; padding:12px 26px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:14px;">
+                                View Your Ticket in TMS Portal &rarr;
+                            </a>
+                        </div>
+                    </div>
                 </div>`
             ).catch((err) => console.error("Creator email send error:", err));
         }
@@ -565,15 +591,35 @@ exports.updateTicket = async (req, res) => {
             if (ticket.createdBy) {
                 const reporter = await User.findById(ticket.createdBy);
                 if (reporter?.email) {
+                    const ticketKey = `TKT-${ticket._id.toString().slice(-5).toUpperCase()}`;
+                    const statusColor = status === "Resolved" ? "linear-gradient(135deg, #10b981 0%, #059669 100%)" : status === "In Progress" ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "linear-gradient(135deg, #475569 0%, #334155 100%)";
+                    const badgeColor = status === "Resolved" ? "background-color:#d1fae5; color:#065f46;" : status === "In Progress" ? "background-color:#dbeafe; color:#1e40af;" : "background-color:#f1f5f9; color:#334155;";
+
                     sendEmail(
                         reporter.email,
-                        `[TMS Alert] Ticket Status Updated: ${ticket.title}`,
-                        `<div style="font-family: sans-serif; max-width:600px; padding:20px; border:1px solid #e2e8f0; border-radius:8px;">
-                            <h3 style="color:#0052cc; margin-top:0;">Ticket Status Update Notification 🔔</h3>
-                            <p><strong>Ticket:</strong> ${ticket.title}</p>
-                            <p><strong>Status Changed:</strong> <span style="color:#e53e3e;">${prevStatus}</span> &rarr; <span style="color:#38a169; font-weight:bold;">${status}</span></p>
-                            <br/>
-                            <a href="${getClientUrl(req)}/ticket/${ticket._id}" style="display:inline-block; padding:10px 20px; background:#0052cc; color:white; text-decoration:none; border-radius:4px; font-weight:bold;">View Ticket in TMS</a>
+                        `[TMS Alert] Ticket #${ticketKey} Status Updated to "${status}"`,
+                        `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; background-color:#ffffff; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                            <div style="background: ${statusColor}; color:#ffffff; padding:20px 25px;">
+                                <div style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">Status Update Alert</div>
+                                <h2 style="margin:0; font-size:20px; font-weight:700;">Ticket Status Moved to "${status}" 🔔</h2>
+                            </div>
+                            <div style="padding:25px; color:#172b4d;">
+                                <div style="margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #f1f5f9;">
+                                    <span style="background-color:#e2e8f0; color:#334155; padding:3px 8px; border-radius:4px; font-family:monospace; font-weight:bold; font-size:12px;">${ticketKey}</span>
+                                    <h3 style="margin:10px 0 0 0; font-size:18px; font-weight:700; color:#0f172a;">${ticket.title}</h3>
+                                </div>
+                                <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px; margin-bottom:22px; text-align:center;">
+                                    <span style="font-size:11px; font-weight:bold; color:#64748b; text-transform:uppercase; display:block; margin-bottom:8px;">Status Transition</span>
+                                    <span style="display:inline-block; background-color:#e2e8f0; color:#475569; padding:5px 12px; border-radius:6px; font-weight:bold; font-size:13px;">${prevStatus}</span>
+                                    <span style="margin:0 10px; color:#94a3b8; font-weight:bold;">&rarr;</span>
+                                    <span style="display:inline-block; ${badgeColor} padding:5px 12px; border-radius:6px; font-weight:bold; font-size:13px;">${status}</span>
+                                </div>
+                                <div style="text-align:center; margin-top:20px;">
+                                    <a href="${getClientUrl()}/ticket/${ticket._id}" style="display:inline-block; background-color:#0052cc; color:#ffffff; padding:12px 26px; border-radius:6px; font-weight:bold; text-decoration:none; font-size:14px;">
+                                        View Updated Ticket in TMS Portal &rarr;
+                                    </a>
+                                </div>
+                            </div>
                         </div>`
                     ).catch((err) => console.error("Email send error:", err));
                 }
